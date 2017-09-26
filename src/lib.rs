@@ -9,6 +9,7 @@ use chrono::NaiveDateTime;
 extern crate error_chain;
 
 pub mod error;
+pub use error::*;
 
 /// All the variables stored in the sounding.
 ///
