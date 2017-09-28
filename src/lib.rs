@@ -11,54 +11,59 @@ extern crate error_chain;
 pub mod error;
 pub use error::*;
 
+pub mod missing_value;
+pub use missing_value::{OptionVal, MissingData};
+
 /// All the variables stored in the sounding.
 ///
-/// Missing values are -9999.0. The upper air profile variables are stored in parallel vectors.
-/// If a profile lacks a certain variable, e.g. cloud fraction, that whole vector has length 0
-/// instead of being full of missing values.
+/// The upper air profile variables are stored in parallel vectors. If a profile lacks a certain
+/// variable, e.g. cloud fraction, that whole vector has length 0 instead of being full of missing
+/// values.
 pub struct Sounding {
     // Station info section
     /// station number, USAF number, eg 727730
-    pub num: i32,
+    pub num: OptionVal<i32>,
     /// Valid time of sounding
     pub valid_time: NaiveDateTime,
     /// Difference in model initialization time and `valid_time` in hours.
-    pub lead_time: i32,
+    pub lead_time: OptionVal<i32>,
     /// Latitude of grid point used to make sounding.
-    pub lat: f32,
+    pub lat: OptionVal<f32>,
     /// Longitude of grid point used to make sounding.
-    pub lon: f32,
+    pub lon: OptionVal<f32>,
     /// Elevation of grid point in meters, this is in model terrain, not necessarily the same as
     /// the real world.
-    pub elevation: f32,
+    pub elevation: OptionVal<f32>,
 
     // Sounding Indexes
     /// Showalter index
-    pub show: f32,
+    pub show: OptionVal<f32>,
     /// Lifted index
-    pub li: f32,
+    pub li: OptionVal<f32>,
     /// Severe Weather Threat Index
-    pub swet: f32,
+    pub swet: OptionVal<f32>,
     /// K-index
-    pub kinx: f32,
+    pub kinx: OptionVal<f32>,
     /// Lifting Condensation Level, or LCL (hPa), pressure vertical coordinate.
-    pub lclp: f32,
+    pub lclp: OptionVal<f32>,
     /// Precipitable Water (mm)
-    pub pwat: f32,
+    pub pwat: OptionVal<f32>,
     /// Total-Totals
-    pub totl: f32,
+    pub totl: OptionVal<f32>,
     /// Convective Available Potential Energy, or CAPE. (J/kg)
-    pub cape: f32,
+    pub cape: OptionVal<f32>,
     /// Temperature at LCL (K)
-    pub lclt: f32,
+    pub lclt: OptionVal<f32>,
     /// Convective Inhibitive Energy, or CIN (J/kg)
-    pub cins: f32,
+    pub cins: OptionVal<f32>,
     /// Equilibrium Level (hPa), pressure vertical coordinate
-    pub eqlv: f32,
+    pub eqlv: OptionVal<f32>,
     /// Level of Free Convection (hPa), pressure vertical coordinate
-    pub lfc: f32,
+    pub lfc: OptionVal<f32>,
     /// Bulk Richardson Number
-    pub brch: f32,
+    pub brch: OptionVal<f32>,
+    /// Haines Index
+    pub hain: OptionVal<i32>,
 
     // Upper air profile
     /// Pressure (hPa) profile
@@ -84,17 +89,17 @@ pub struct Sounding {
 
     // Surface data
     /// Surface pressure reduce to mean sea level (hPa)
-    pub mslp: f32,
+    pub mslp: OptionVal<f32>,
     /// Surface pressure (hPa)
-    pub station_pres: f32,
+    pub station_pres: OptionVal<f32>,
     /// Low cloud fraction
-    pub low_cloud: f32,
+    pub low_cloud: OptionVal<f32>,
     /// Mid cloud fraction
-    pub mid_cloud: f32,
+    pub mid_cloud: OptionVal<f32>,
     /// Hi cloud fraction
-    pub hi_cloud: f32,
+    pub hi_cloud: OptionVal<f32>,
     /// U - wind speed (m/s) (West -> East is positive)
-    pub uwind: f32,
+    pub uwind: OptionVal<f32>,
     /// V - wind speed (m/s) (South -> North is positive)
-    pub vwind: f32,
+    pub vwind: OptionVal<f32>,
 }
