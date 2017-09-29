@@ -13,7 +13,7 @@ where
     const MISSING: T;
 }
 
-/// A newtype to wrap a type and implement the MissingData trait.
+/// A newtype to wrap a type and implement the `MissingData` trait.
 #[derive(Clone, Copy)]
 pub struct OptionVal<T: PartialEq + Copy + MissingData<T>> {
     value: T,

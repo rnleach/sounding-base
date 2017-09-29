@@ -109,6 +109,7 @@ pub struct Sounding {
 impl Sounding {
     /// Validates the sounding with some simple sanity checks. For instance, checks that pressure
     /// decreases with height.
+    #[cfg_attr(feature = "cargo-clippy", allow(cyclomatic_complexity))]
     pub fn validate(&self) -> Result<()> {
 
         macro_rules! validate_f32_positive {
@@ -160,17 +161,16 @@ impl Sounding {
         for pres in &self.pressure {
             if pres.as_option().is_none() {
                 continue;
-            } else {
-                let pres_val = pres.unwrap();
-                if pressure_one_level_down < pres_val {
-                    error_msg.push_str(&format!(
-                        "\nPressure increasing with height: {} < {}",
-                        pressure_one_level_down,
-                        pres_val
-                    ));
-                }
-                pressure_one_level_down = pres_val;
             }
+            let pres_val = pres.unwrap();
+            if pressure_one_level_down < pres_val {
+                error_msg.push_str(&format!(
+                    "\nPressure increasing with height: {} < {}",
+                    pressure_one_level_down,
+                    pres_val
+                ));
+            }
+            pressure_one_level_down = pres_val;
         }
 
         // Check height always increases with height.
@@ -178,17 +178,16 @@ impl Sounding {
         for hght in &self.height {
             if hght.as_option().is_none() {
                 continue;
-            } else {
-                let hght_val = hght.unwrap();
-                if height_one_level_down > hght_val {
-                    error_msg.push_str(&format!(
-                        "\nHeight values decreasing with height: {} < {}",
-                        height_one_level_down,
-                        hght_val
-                    ));
-                }
-                height_one_level_down = hght_val;
             }
+            let hght_val = hght.unwrap();
+            if height_one_level_down > hght_val {
+                error_msg.push_str(&format!(
+                    "\nHeight values decreasing with height: {} < {}",
+                    height_one_level_down,
+                    hght_val
+                ));
+            }
+            height_one_level_down = hght_val;
         }
 
         // Check that dew point <= wet bulb <= t
@@ -233,10 +232,9 @@ impl Sounding {
         for spd in &self.speed {
             if spd.as_option().is_none() {
                 continue;
-            } else {
-                if spd.unwrap() < 0.0 {
-                    error_msg.push_str(&format!("\nWind speed < 0: {} < 0.0", spd.unwrap()));
-                }
+            }
+            if spd.unwrap() < 0.0 {
+                error_msg.push_str(&format!("\nWind speed < 0: {} < 0.0", spd.unwrap()));
             }
         }
 
@@ -244,11 +242,11 @@ impl Sounding {
         for cld in &self.cloud_fraction {
             if cld.as_option().is_none() {
                 continue;
-            } else {
-                if cld.unwrap() < 0.0 {
-                    error_msg.push_str(&format!("\nCloud fraction < 0: {} < 0.0", cld.unwrap()));
-                }
             }
+            if cld.unwrap() < 0.0 {
+                error_msg.push_str(&format!("\nCloud fraction < 0: {} < 0.0", cld.unwrap()));
+            }
+
         }
 
         // Index checks
