@@ -275,4 +275,57 @@ impl Sounding {
             Err(Error::from(ErrorKind::ValidationError(error_msg)))
         }
     }
+
+    /// Returns the maximum and minimum extents.
+    /// `(max_pressure, min_pressure, (t_min_ext, p_min_ext),(t_max_ext, p_max_ext))`
+    pub fn get_pressure_extents(&self) -> (f32, f32, (f32, f32),(f32, f32)) {
+        let mut max_pressure = ::std::f32::MIN;
+        let mut min_pressure = ::std::f32::MAX;
+        let mut minx = ::std::f32::MAX;
+        let mut maxx = ::std::f32::MIN;
+        let mut minx_extents = (::std::f32::NAN, ::std::f32::NAN);
+        let mut maxx_extents = (::std::f32::NAN, ::std::f32::NAN);
+
+        if let Some(pres) = self.station_pres.as_option() {
+            if pres > max_pressure {
+                max_pressure = pres;
+            }
+        }
+
+       let long_list = self.pressure.iter()
+            .zip(self.temperature.iter())
+            .chain(self.pressure.iter()
+                .zip(self.dew_point.iter())
+            )
+            .filter_map(|v| {
+                let (pres, temp) = v;
+                if pres.as_option().is_some() && temp.as_option().is_some() {
+                    Some((pres.unwrap(), temp.unwrap()))
+                } else {
+                    None
+                }
+            });
+
+        for (pres, tmp) in long_list {
+            if pres > max_pressure {
+                max_pressure = pres;
+            }
+            if pres < min_pressure {
+                min_pressure = pres;
+            }
+
+            let x = tmp + pres;
+            if x > maxx {
+                maxx = x;
+                maxx_extents = (pres, tmp);
+            }
+            if x < minx {
+                minx = x;
+                minx_extents = (pres, tmp);
+            }
+        }
+
+        (max_pressure, min_pressure, minx_extents, maxx_extents)
+    }
+
 }
