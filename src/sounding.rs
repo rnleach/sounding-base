@@ -1,9 +1,9 @@
 //! Data type and methods to store an atmospheric sounding.
 
-use ::chrono::NaiveDateTime;
+use chrono::NaiveDateTime;
 
-use ::error::*;
-use ::missing_value::OptionVal;
+use error::*;
+use missing_value::OptionVal;
 
 /// All the variables stored in the sounding.
 ///
@@ -275,5 +275,4 @@ impl Sounding {
             Err(Error::from(ErrorKind::ValidationError(error_msg)))
         }
     }
-
 }
