@@ -81,8 +81,8 @@ where
     }
 }
 
-impl MissingData<f32> for f32 {
-    const MISSING: f32 = -9999.0;
+impl MissingData<f64> for f64 {
+    const MISSING: f64 = -9999.0;
 }
 
 impl MissingData<i32> for i32 {

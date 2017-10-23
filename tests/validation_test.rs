@@ -121,9 +121,9 @@ fn create_valid_test_sounding() -> Sounding {
 
         mslp: 1014.0.into(),
         station_pres: 847.0.into(),
-        low_cloud: f32::MISSING.into(),
-        mid_cloud: f32::MISSING.into(),
-        hi_cloud: f32::MISSING.into(),
+        low_cloud: f64::MISSING.into(),
+        mid_cloud: f64::MISSING.into(),
+        hi_cloud: f64::MISSING.into(),
         uwind: 0.0.into(),
         vwind: 0.0.into(),
     }

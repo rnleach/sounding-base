@@ -21,80 +21,80 @@ pub struct Sounding {
     /// Difference in model initialization time and `valid_time` in hours.
     pub lead_time: OptionVal<i32>,
     /// Latitude of grid point used to make sounding.
-    pub lat: OptionVal<f32>,
+    pub lat: OptionVal<f64>,
     /// Longitude of grid point used to make sounding.
-    pub lon: OptionVal<f32>,
+    pub lon: OptionVal<f64>,
     /// Elevation of grid point in meters, this is in model terrain, not necessarily the same as
     /// the real world.
-    pub elevation: OptionVal<f32>,
+    pub elevation: OptionVal<f64>,
 
     // Sounding Indexes
     /// Showalter index
-    pub show: OptionVal<f32>,
+    pub show: OptionVal<f64>,
     /// Lifted index
-    pub li: OptionVal<f32>,
+    pub li: OptionVal<f64>,
     /// Severe Weather Threat Index
-    pub swet: OptionVal<f32>,
+    pub swet: OptionVal<f64>,
     /// K-index
-    pub kinx: OptionVal<f32>,
+    pub kinx: OptionVal<f64>,
     /// Lifting Condensation Level, or LCL (hPa), pressure vertical coordinate.
-    pub lclp: OptionVal<f32>,
+    pub lclp: OptionVal<f64>,
     /// Precipitable Water (mm)
-    pub pwat: OptionVal<f32>,
+    pub pwat: OptionVal<f64>,
     /// Total-Totals
-    pub totl: OptionVal<f32>,
+    pub totl: OptionVal<f64>,
     /// Convective Available Potential Energy, or CAPE. (J/kg)
-    pub cape: OptionVal<f32>,
+    pub cape: OptionVal<f64>,
     /// Temperature at LCL (K)
-    pub lclt: OptionVal<f32>,
+    pub lclt: OptionVal<f64>,
     /// Convective Inhibitive Energy, or CIN (J/kg)
-    pub cins: OptionVal<f32>,
+    pub cins: OptionVal<f64>,
     /// Equilibrium Level (hPa), pressure vertical coordinate
-    pub eqlv: OptionVal<f32>,
+    pub eqlv: OptionVal<f64>,
     /// Level of Free Convection (hPa), pressure vertical coordinate
-    pub lfc: OptionVal<f32>,
+    pub lfc: OptionVal<f64>,
     /// Bulk Richardson Number
-    pub brch: OptionVal<f32>,
+    pub brch: OptionVal<f64>,
     /// Haines Index
     pub hain: OptionVal<i32>,
 
     // Upper air profile
     /// Pressure (hPa) profile
-    pub pressure: Vec<OptionVal<f32>>,
+    pub pressure: Vec<OptionVal<f64>>,
     /// Temperature (c) profile
-    pub temperature: Vec<OptionVal<f32>>,
+    pub temperature: Vec<OptionVal<f64>>,
     /// Wet-bulb (c) profile
-    pub wet_bulb: Vec<OptionVal<f32>>,
+    pub wet_bulb: Vec<OptionVal<f64>>,
     /// Dew Point (C) profile
-    pub dew_point: Vec<OptionVal<f32>>,
+    pub dew_point: Vec<OptionVal<f64>>,
     /// Equivalent Potential Temperature (K) profile
-    pub theta_e: Vec<OptionVal<f32>>,
+    pub theta_e: Vec<OptionVal<f64>>,
     /// Wind direction (degrees) profile
-    pub direction: Vec<OptionVal<f32>>,
+    pub direction: Vec<OptionVal<f64>>,
     /// Wind speed (knots) profile
-    pub speed: Vec<OptionVal<f32>>,
+    pub speed: Vec<OptionVal<f64>>,
     /// Vertical velocity (Pa/sec), pressure vertical coordinate
-    pub omega: Vec<OptionVal<f32>>,
+    pub omega: Vec<OptionVal<f64>>,
     /// Geopotential Height (m) profile
-    pub height: Vec<OptionVal<f32>>,
+    pub height: Vec<OptionVal<f64>>,
     /// Cloud coverage fraction in percent
-    pub cloud_fraction: Vec<OptionVal<f32>>,
+    pub cloud_fraction: Vec<OptionVal<f64>>,
 
     // Surface data
     /// Surface pressure reduce to mean sea level (hPa)
-    pub mslp: OptionVal<f32>,
+    pub mslp: OptionVal<f64>,
     /// Surface pressure (hPa)
-    pub station_pres: OptionVal<f32>,
+    pub station_pres: OptionVal<f64>,
     /// Low cloud fraction
-    pub low_cloud: OptionVal<f32>,
+    pub low_cloud: OptionVal<f64>,
     /// Mid cloud fraction
-    pub mid_cloud: OptionVal<f32>,
+    pub mid_cloud: OptionVal<f64>,
     /// Hi cloud fraction
-    pub hi_cloud: OptionVal<f32>,
+    pub hi_cloud: OptionVal<f64>,
     /// U - wind speed (m/s) (West -> East is positive)
-    pub uwind: OptionVal<f32>,
+    pub uwind: OptionVal<f64>,
     /// V - wind speed (m/s) (South -> North is positive)
-    pub vwind: OptionVal<f32>,
+    pub vwind: OptionVal<f64>,
 }
 
 impl Sounding {
@@ -103,9 +103,9 @@ impl Sounding {
     #[cfg_attr(feature = "cargo-clippy", allow(cyclomatic_complexity))]
     pub fn validate(&self) -> Result<()> {
 
-        macro_rules! validate_f32_positive {
+        macro_rules! validate_f64_positive {
             ($var:ident, $err_msg:ident, $var_name:expr) => {
-                let opt: Option<f32> = self.$var.into();
+                let opt: Option<f64> = self.$var.into();
                 if let Some(val) = opt {
                     if val < 0.0 {
                         $err_msg.push_str(&format!("\n{} < 0.0: {}", $var_name, val));
@@ -145,7 +145,7 @@ impl Sounding {
 
         // Check that pressure always decreases with height and that the station pressure is more
         // than the lowest pressure level in sounding.
-        let mut pressure_one_level_down = ::std::f32::MAX;
+        let mut pressure_one_level_down = ::std::f64::MAX;
         if let Some(val) = self.station_pres.as_option() {
             pressure_one_level_down = val;
         }
@@ -165,7 +165,7 @@ impl Sounding {
         }
 
         // Check height always increases with height.
-        let mut height_one_level_down = ::std::f32::MIN;
+        let mut height_one_level_down = ::std::f64::MIN;
         for hght in &self.height {
             if hght.as_option().is_none() {
                 continue;
@@ -241,11 +241,11 @@ impl Sounding {
         }
 
         // Index checks
-        validate_f32_positive!(cape, error_msg, "CAPE");
-        validate_f32_positive!(pwat, error_msg, "PWAT");
+        validate_f64_positive!(cape, error_msg, "CAPE");
+        validate_f64_positive!(pwat, error_msg, "PWAT");
 
         // Check that cin <= 0
-        let opt: Option<f32> = self.cins.into();
+        let opt: Option<f64> = self.cins.into();
         if let Some(val) = opt {
             if val > 0.0 {
                 error_msg.push_str(&format!("\nCINS > 0.0: {}", val));
@@ -264,9 +264,9 @@ impl Sounding {
 
         // Surface checks
         // Check that hi, mid, and low cloud are all positive or zero
-        validate_f32_positive!(low_cloud, error_msg, "low cloud");
-        validate_f32_positive!(mid_cloud, error_msg, "mid cloud");
-        validate_f32_positive!(hi_cloud, error_msg, "hi cloud");
+        validate_f64_positive!(low_cloud, error_msg, "low cloud");
+        validate_f64_positive!(mid_cloud, error_msg, "mid cloud");
+        validate_f64_positive!(hi_cloud, error_msg, "hi cloud");
 
         if error_msg == "" {
             Ok(())

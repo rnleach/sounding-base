@@ -1,6 +1,6 @@
 [package]
 name = "sounding-base"
-version = "0.0.7"
+version = "0.0.8"
 authors = ["Ryan Leach <clumsycodemonkey@gmail.com>"]
 description = """Data formats and algorithms for atmospheric soundings. The base crate is meant to
               be a common base for other crates to build on. These crates may be for managing a 
@@ -11,5 +11,5 @@ license-file = "LICENSE"
 exclude = ["**/*.rs.bk",".gitignore",".vscode/**/*"]
 
 [dependencies]
-chrono="^0.3"
+chrono="^0.4"
 error-chain = "^0.11"
