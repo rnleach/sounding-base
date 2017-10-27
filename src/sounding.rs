@@ -97,8 +97,9 @@ pub struct Sounding {
     pub vwind: OptionVal<f64>,
 }
 
-/// A view of a row of the sounding data.
+/// A view of a row of the sounding data. Values are named the same as those in a `Sounding`.
 #[derive(Default, Debug)]
+#[allow(missing_docs)]
 pub struct DataRow {
     pub pressure: OptionVal<f64>,
     pub temperature: OptionVal<f64>,
@@ -291,6 +292,36 @@ impl Sounding {
         }
     }
 
+    /// Get a row of data values from this sounding.
+    pub fn get_data_row(&self, idx: usize) -> Option<DataRow> {
+
+        macro_rules! copy_to_result {
+            ($result:ident, $field:ident, $idx:ident) => {
+                match self.$field.get($idx) {
+                    None => {},
+                    Some(opt_val) => $result.$field = *opt_val,
+                }
+            };
+        }
+        
+        if self.pressure.len() <= idx {return None;}
+        
+        let mut result = DataRow::default();
+
+        copy_to_result!(result, pressure, idx);
+        copy_to_result!(result, temperature, idx);
+        copy_to_result!(result, wet_bulb, idx);
+        copy_to_result!(result, dew_point, idx);
+        copy_to_result!(result, theta_e, idx);
+        copy_to_result!(result, direction, idx);
+        copy_to_result!(result, speed, idx);
+        copy_to_result!(result, omega, idx);
+        copy_to_result!(result, height, idx);
+        copy_to_result!(result, cloud_fraction, idx);
+        
+        Some(result)
+    }
+
     /// Interpolate values from the vertical sounding using pressure as the primary coordinate.
     ///
     /// Returns a `DataRow` struct with interpolated values.
@@ -309,7 +340,6 @@ impl Sounding {
 
         let mut result = DataRow::default();
         result.pressure = target_p.into();
-
 
         let mut below_idx: usize = 0;
         let mut above_idx: usize = 0;
@@ -354,5 +384,26 @@ impl Sounding {
         }
 
         result
+    }
+
+    /// Given a target pressure, return the row of data values closest to this one.
+    pub fn fetch_nearest_pnt(&self, target_p: f64) -> DataRow {
+
+        let mut idx: usize = 0;
+        let mut best_abs_diff: f64 = ::std::f64::MAX;
+        for (i, p) in self.pressure.iter().enumerate() {
+            if let Some(p) = p.as_option() {
+                let abs_diff = (target_p - p).abs();
+                if abs_diff < best_abs_diff {
+                    best_abs_diff = abs_diff;
+                    idx = i;
+                }
+                if abs_diff > best_abs_diff {
+                    break;
+                }
+            }
+        }
+
+        self.get_data_row(idx).unwrap()
     }
 }
