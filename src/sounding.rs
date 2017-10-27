@@ -98,7 +98,7 @@ pub struct Sounding {
 }
 
 /// A view of a row of the sounding data.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct DataRow {
     pub pressure: OptionVal<f64>,
     pub temperature: OptionVal<f64>,

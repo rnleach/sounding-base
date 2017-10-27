@@ -14,7 +14,7 @@ where
 }
 
 /// A newtype to wrap a type and implement the `MissingData` trait.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct OptionVal<T: PartialEq + Copy + MissingData<T>> {
     value: T,
 }
