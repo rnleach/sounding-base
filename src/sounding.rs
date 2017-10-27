@@ -97,6 +97,21 @@ pub struct Sounding {
     pub vwind: OptionVal<f64>,
 }
 
+/// A view of a row of the sounding data.
+#[derive(Default)]
+pub struct DataRow {
+    pub pressure: OptionVal<f64>,
+    pub temperature: OptionVal<f64>,
+    pub wet_bulb: OptionVal<f64>,
+    pub dew_point: OptionVal<f64>,
+    pub theta_e: OptionVal<f64>,
+    pub direction: OptionVal<f64>,
+    pub speed: OptionVal<f64>,
+    pub omega: OptionVal<f64>,
+    pub height: OptionVal<f64>,
+    pub cloud_fraction: OptionVal<f64>,
+}
+
 impl Sounding {
     /// Validates the sounding with some simple sanity checks. For instance, checks that pressure
     /// decreases with height.
@@ -274,5 +289,70 @@ impl Sounding {
             error_msg.push('\n');
             Err(Error::from(ErrorKind::ValidationError(error_msg)))
         }
+    }
+
+    /// Interpolate values from the vertical sounding using pressure as the primary coordinate.
+    ///
+    /// Returns a `DataRow` struct with interpolated values.
+    pub fn interpolate(&self, target_p: f64) -> DataRow {
+
+        macro_rules! linear_interp {
+            ($res:ident, $blw_idx:ident, $abv_idx:ident,  $run:ident, $dp:ident, $array:ident) => {
+                if self.$array.len() > $abv_idx {
+                    let val_below = self.$array[$blw_idx].unwrap();
+                    let val_above = self.$array[$abv_idx].unwrap();
+                    let rise = val_above - val_below;
+                    $res.$array = (val_below + $dp * rise/$run).into();
+                }
+            };
+        }
+
+        let mut result = DataRow::default();
+        result.pressure = target_p.into();
+
+
+        let mut below_idx: usize = 0;
+        let mut above_idx: usize = 0;
+        for (i, p) in self.pressure.iter().enumerate() {
+            if let Some(p) = p.as_option() {
+                if p > target_p {
+                    below_idx = i;
+                }
+                if p < target_p {
+                    above_idx = i;
+                    break;
+                }
+            }
+        }
+
+        if above_idx != 0 {
+            let p_below = self.pressure[below_idx].unwrap();
+            let p_above = self.pressure[above_idx].unwrap();
+            let run = p_above - p_below;
+            let dp = target_p - p_below;
+
+            if self.temperature.len() > above_idx {
+                let t_below = self.temperature[below_idx];
+                let t_above = self.temperature[above_idx];
+                if t_below.as_option().is_some() && t_above.as_option().is_some(){
+                    let t_below = t_below.unwrap();
+                    let t_above = t_above.unwrap();
+                    let rise = t_above - t_below;
+                    result.temperature = (t_below + dp * rise/run).into();
+                }
+            }
+
+            linear_interp!(result, below_idx, above_idx, run, dp, wet_bulb);
+            linear_interp!(result, below_idx, above_idx, run, dp, dew_point);
+            linear_interp!(result, below_idx, above_idx, run, dp, theta_e);
+            // FIXME: Account for wrap around, use vector interpolation.
+            linear_interp!(result, below_idx, above_idx, run, dp, direction);
+            linear_interp!(result, below_idx, above_idx, run, dp, speed);
+            linear_interp!(result, below_idx, above_idx, run, dp, omega);
+            linear_interp!(result, below_idx, above_idx, run, dp, height);
+            linear_interp!(result, below_idx, above_idx, run, dp, cloud_fraction);
+        }
+
+        result
     }
 }
