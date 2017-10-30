@@ -99,17 +99,26 @@ pub struct Sounding {
 
 /// A view of a row of the sounding data. Values are named the same as those in a `Sounding`.
 #[derive(Default, Debug)]
-#[allow(missing_docs)]
 pub struct DataRow {
+    /// Pressure in hPa
     pub pressure: OptionVal<f64>,
+    /// Temperature in C
     pub temperature: OptionVal<f64>,
+    /// Wet bulb temperature in C
     pub wet_bulb: OptionVal<f64>,
+    /// Dew point in C
     pub dew_point: OptionVal<f64>,
+    /// Equivalent potential temperature in Kelvin
     pub theta_e: OptionVal<f64>,
+    /// Wind direction (from) in degrees.
     pub direction: OptionVal<f64>,
+    /// Wind speed in knots
     pub speed: OptionVal<f64>,
+    /// Pressure vertical velocity in Pa/sec
     pub omega: OptionVal<f64>,
+    /// Geopotential Height in meters
     pub height: OptionVal<f64>,
+    /// Cloud fraction in percent
     pub cloud_fraction: OptionVal<f64>,
 }
 
@@ -303,9 +312,11 @@ impl Sounding {
                 }
             };
         }
-        
-        if self.pressure.len() <= idx {return None;}
-        
+
+        if self.pressure.len() <= idx {
+            return None;
+        }
+
         let mut result = DataRow::default();
 
         copy_to_result!(result, pressure, idx);
@@ -318,22 +329,27 @@ impl Sounding {
         copy_to_result!(result, omega, idx);
         copy_to_result!(result, height, idx);
         copy_to_result!(result, cloud_fraction, idx);
-        
+
         Some(result)
     }
 
     /// Interpolate values from the vertical sounding using pressure as the primary coordinate.
     ///
     /// Returns a `DataRow` struct with interpolated values.
-    pub fn interpolate(&self, target_p: f64) -> DataRow {
+    pub fn linear_interpolate(&self, target_p: f64) -> DataRow {
 
         macro_rules! linear_interp {
             ($res:ident, $blw_idx:ident, $abv_idx:ident,  $run:ident, $dp:ident, $array:ident) => {
                 if self.$array.len() > $abv_idx {
-                    let val_below = self.$array[$blw_idx].unwrap();
-                    let val_above = self.$array[$abv_idx].unwrap();
-                    let rise = val_above - val_below;
-                    $res.$array = (val_below + $dp * rise/$run).into();
+                    if let (Some(val_below), Some(val_above)) =
+                        (
+                            self.$array[$blw_idx].as_option(),
+                            self.$array[$abv_idx].as_option(),
+                        )
+                    {
+                        let rise = val_above - val_below;
+                        $res.$array = (val_below + $dp * rise/$run).into();
+                    }
                 }
             };
         }
@@ -364,19 +380,50 @@ impl Sounding {
             if self.temperature.len() > above_idx {
                 let t_below = self.temperature[below_idx];
                 let t_above = self.temperature[above_idx];
-                if t_below.as_option().is_some() && t_above.as_option().is_some(){
+                if t_below.as_option().is_some() && t_above.as_option().is_some() {
                     let t_below = t_below.unwrap();
                     let t_above = t_above.unwrap();
                     let rise = t_above - t_below;
-                    result.temperature = (t_below + dp * rise/run).into();
+                    result.temperature = (t_below + dp * rise / run).into();
                 }
             }
 
             linear_interp!(result, below_idx, above_idx, run, dp, wet_bulb);
             linear_interp!(result, below_idx, above_idx, run, dp, dew_point);
             linear_interp!(result, below_idx, above_idx, run, dp, theta_e);
-            // FIXME: Account for wrap around, use vector interpolation.
-            linear_interp!(result, below_idx, above_idx, run, dp, direction);
+
+            // Special interpolation for anlges
+            if self.direction.len() > above_idx {
+                if let (Some(dir_below), Some(dir_above)) =
+                    (
+                        self.direction[below_idx].as_option(),
+                        self.direction[above_idx].as_option(),
+                    )
+                {
+                    let x_below = dir_below.to_radians().sin();
+                    let x_above = dir_above.to_radians().sin();
+                    let y_below = dir_below.to_radians().cos();
+                    let y_above = dir_above.to_radians().cos();
+
+                    let rise_x = x_above - x_below;
+                    let rise_y = y_above - y_below;
+
+                    let x_dir = x_below + dp * rise_x / run;
+                    let y_dir = y_below + dp * rise_y / run;
+
+                    let mut dir = x_dir.atan2(y_dir).to_degrees();
+
+                    while dir < 0.0 {
+                        dir += 360.0;
+                    }
+                    while dir > 360.0 {
+                        dir -= 360.0;
+                    }
+
+                    result.direction = dir.into();
+                }
+            }
+
             linear_interp!(result, below_idx, above_idx, run, dp, speed);
             linear_interp!(result, below_idx, above_idx, run, dp, omega);
             linear_interp!(result, below_idx, above_idx, run, dp, height);

@@ -14,4 +14,4 @@ pub mod missing_value;
 pub use missing_value::{OptionVal, MissingData};
 
 pub mod sounding;
-pub use sounding::Sounding;
+pub use sounding::{Sounding, DataRow};
