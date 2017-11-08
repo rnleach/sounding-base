@@ -3,13 +3,5 @@
         "target": true,
         "Cargo.lock": true,
         "**/*.rs.bk": true
-    },
-    "rust.rustup": {
-        "toolchain": "nightly-x86_64-unknown-linux-gnu",
-        "nightlyToolchain": "nightly-x86_64-unknown-linux-gnu"
-      },
-
-    // Shell program for integrated shell
-  "terminal.integrated.shell.windows": "C:\\Program Files\\Git\\bin\\bash.exe",
-  "terminal.integrated.shellArgs.windows": ["--login"]
+    }
 }
