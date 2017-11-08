@@ -34,7 +34,6 @@ fn create_valid_test_sounding() -> Sounding {
         eqlv: 222.0.into(),
         lfc: 800.0.into(),
         brch: 1.2.into(),
-        hain: 6.into(),
 
         pressure: vec![
             840.0.into(),
@@ -131,7 +130,7 @@ fn create_valid_test_sounding() -> Sounding {
 
 fn create_invalid_test_sounding() -> Sounding {
     Sounding {
-        hain: 1.into(),
+        pwat: (-5.1).into(),
         ..create_valid_test_sounding()
     }
 }

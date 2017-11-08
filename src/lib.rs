@@ -1,7 +1,7 @@
 #![warn(missing_docs)]
+#![recursion_limit = "1024"]
 //! Library to represent an atmospheric sounding.
 
-#![recursion_limit = "1024"]
 extern crate chrono;
 
 #[macro_use]
@@ -14,4 +14,4 @@ pub mod missing_value;
 pub use missing_value::{OptionVal, MissingData};
 
 pub mod sounding;
-pub use sounding::{Sounding, DataRow};
+pub use sounding::{Sounding, DataRow, Profile, Surface, Index};
