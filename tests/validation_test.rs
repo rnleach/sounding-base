@@ -1,6 +1,6 @@
 extern crate sounding_base;
 
-use sounding_base::{Sounding, MissingData};
+use sounding_base::{Sounding, OptionVal};
 
 #[test]
 fn test_validate() {
@@ -13,124 +13,138 @@ fn test_validate() {
 }
 
 fn create_valid_test_sounding() -> Sounding {
-    Sounding {
-        num: 1.into(),
-        valid_time: None,
-        lead_time: 0.into(),
-        lat: 45.0.into(),
-        lon: (-115.0).into(),
-        elevation: 1023.0.into(),
+    use sounding_base::Profile::*;
+    use sounding_base::Index::*;
+    use sounding_base::Surface::*;
 
-        show: (-2.0).into(),
-        li: (-2.0).into(),
-        swet: 35.0.into(),
-        kinx: 45.0.into(),
-        lclp: 850.0.into(),
-        pwat: 2.0.into(),
-        totl: 55.0.into(),
-        cape: 852.0.into(),
-        lclt: 12.0.into(),
-        cins: (-200.0).into(),
-        eqlv: 222.0.into(),
-        lfc: 800.0.into(),
-        brch: 1.2.into(),
-
-        pressure: vec![
-            840.0.into(),
-            800.0.into(),
-            700.0.into(),
-            500.0.into(),
-            300.0.into(),
-            250.0.into(),
-            200.0.into(),
-            100.0.into(),
-        ],
-        temperature: vec![
-            20.0.into(),
-            15.0.into(),
-            2.0.into(),
-            (-10.0).into(),
-            (-20.0).into(),
-            (-30.0).into(),
-            (-50.0).into(),
-            (-45.0).into(),
-        ],
-        wet_bulb: vec![
-            20.0.into(),
-            14.0.into(),
-            1.0.into(),
-            (-11.0).into(),
-            (-25.0).into(),
-            (-39.0).into(),
-            (-58.0).into(),
-            (-60.0).into(),
-        ],
-        dew_point: vec![
-            20.0.into(),
-            13.0.into(),
-            0.0.into(),
-            (-12.0).into(),
-            (-27.0).into(),
-            (-45.0).into(),
-            (-62.0).into(),
-            (-80.0).into(),
-        ],
-        theta_e: vec![],
-        direction: vec![
-            0.0.into(),
-            40.0.into(),
-            80.0.into(),
-            120.0.into(),
-            160.0.into(),
-            200.0.into(),
-            240.0.into(),
-            280.0.into(),
-        ],
-        speed: vec![
-            5.0.into(),
-            10.0.into(),
-            15.0.into(),
-            12.0.into(),
-            27.0.into(),
-            45.0.into(),
-            62.0.into(),
-            80.0.into(),
-        ],
-        omega: vec![],
-        height: vec![
-            100.0.into(),
-            200.0.into(),
-            300.0.into(),
-            400.0.into(),
-            500.0.into(),
-            650.0.into(),
-            700.0.into(),
-            800.0.into(),
-        ],
-        cloud_fraction: vec![
-            100.0.into(),
-            85.0.into(),
-            70.0.into(),
-            50.0.into(),
-            30.0.into(),
-            25.0.into(),
-            20.0.into(),
-            10.0.into(),
-        ],
-
-        mslp: 1014.0.into(),
-        station_pres: 847.0.into(),
-        low_cloud: f64::MISSING.into(),
-        mid_cloud: f64::MISSING.into(),
-        hi_cloud: f64::MISSING.into(),
-        uwind: 0.0.into(),
-        vwind: 0.0.into(),
-    }
+    Sounding::new()
+        .set_station_num(1)
+        .set_valid_time(None)
+        .set_lead_time(0)
+        .set_location(45.0, -115.0, 1023.0)
+        .set_index(Showalter, -2.0)
+        .set_index(LI, -2.0)
+        .set_index(SWeT, 35.0)
+        .set_index(K, 45.0)
+        .set_index(LCL, 850.0)
+        .set_index(PWAT, 2.0)
+        .set_index(TotalTotals, 55.0)
+        .set_index(CAPE, 852.0)
+        .set_index(LCLTemperature, 290.0)
+        .set_index(CIN, -200.0)
+        .set_index(EquilibrimLevel, 222.0)
+        .set_index(LFC, 800.0)
+        .set_index(BulkRichardsonNumber, 1.2)
+        .set_profile(
+            Pressure,
+            vec![
+                OptionVal::from(840.0),
+                OptionVal::from(800.0),
+                OptionVal::from(700.0),
+                OptionVal::from(500.0),
+                OptionVal::from(300.0),
+                OptionVal::from(250.0),
+                OptionVal::from(200.0),
+                OptionVal::from(100.0),
+            ],
+        )
+        .set_profile(
+            Temperature,
+            vec![
+                OptionVal::from(20.0),
+                OptionVal::from(15.0),
+                OptionVal::from(2.0),
+                OptionVal::from((-10.0)),
+                OptionVal::from((-20.0)),
+                OptionVal::from((-30.0)),
+                OptionVal::from((-50.0)),
+                OptionVal::from((-45.0)),
+            ],
+        )
+        .set_profile(
+            WetBulb,
+            vec![
+                OptionVal::from(20.0),
+                OptionVal::from(14.0),
+                OptionVal::from(1.0),
+                OptionVal::from((-11.0)),
+                OptionVal::from((-25.0)),
+                OptionVal::from((-39.0)),
+                OptionVal::from((-58.0)),
+                OptionVal::from((-60.0)),
+            ],
+        )
+        .set_profile(
+            DewPoint,
+            vec![
+                OptionVal::from(20.0),
+                OptionVal::from(13.0),
+                OptionVal::from(0.0),
+                OptionVal::from((-12.0)),
+                OptionVal::from((-27.0)),
+                OptionVal::from((-45.0)),
+                OptionVal::from((-62.0)),
+                OptionVal::from((-80.0)),
+            ],
+        )
+        .set_profile(
+            WindDirection,
+            vec![
+                OptionVal::from(0.0),
+                OptionVal::from(40.0),
+                OptionVal::from(80.0),
+                OptionVal::from(120.0),
+                OptionVal::from(160.0),
+                OptionVal::from(200.0),
+                OptionVal::from(240.0),
+                OptionVal::from(280.0),
+            ],
+        )
+        .set_profile(
+            WindSpeed,
+            vec![
+                OptionVal::from(5.0),
+                OptionVal::from(10.0),
+                OptionVal::from(15.0),
+                OptionVal::from(12.0),
+                OptionVal::from(27.0),
+                OptionVal::from(45.0),
+                OptionVal::from(62.0),
+                OptionVal::from(80.0),
+            ],
+        )
+        .set_profile(
+            GeopotentialHeight,
+            vec![
+                OptionVal::from(100.0),
+                OptionVal::from(200.0),
+                OptionVal::from(300.0),
+                OptionVal::from(400.0),
+                OptionVal::from(500.0),
+                OptionVal::from(650.0),
+                OptionVal::from(700.0),
+                OptionVal::from(800.0),
+            ],
+        )
+        .set_profile(
+            CloudFraction,
+            vec![
+                OptionVal::from(100.0),
+                OptionVal::from(85.0),
+                OptionVal::from(70.0),
+                OptionVal::from(50.0),
+                OptionVal::from(30.0),
+                OptionVal::from(25.0),
+                OptionVal::from(20.0),
+                OptionVal::from(10.0),
+            ],
+        )
+        .set_surface_value(MSLP, 1014.0)
+        .set_surface_value(StationPressure, 847.0)
+        .set_surface_value(UWind, 0.0)
+        .set_surface_value(VWind, 0.0)
 }
 
 fn create_invalid_test_sounding() -> Sounding {
-    Sounding {
-        pwat: (-5.1).into(),
-        ..create_valid_test_sounding()
-    }
+    create_valid_test_sounding().set_index(sounding_base::Index::PWAT, -5.1)
 }

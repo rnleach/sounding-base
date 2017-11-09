@@ -15,11 +15,11 @@ use missing_value::OptionVal;
 pub struct Sounding {
     // Station info section
     /// station number, USAF number, eg 727730
-    pub num: OptionVal<i32>,
+    num: OptionVal<i32>,
     /// Valid time of sounding
-    pub valid_time: Option<NaiveDateTime>,
+    valid_time: Option<NaiveDateTime>,
     /// Difference in model initialization time and `valid_time` in hours.
-    pub lead_time: OptionVal<i32>,
+    lead_time: OptionVal<i32>,
     /// Latitude of grid point used to make sounding.
     lat: OptionVal<f64>,
     /// Longitude of grid point used to make sounding.
@@ -95,7 +95,7 @@ pub struct Sounding {
     vwind: OptionVal<f64>,
 }
 
-/// A view of a row of the sounding data. Values are named the same as those in a `Sounding`.
+/// A view of a row of the sounding data.
 #[derive(Default, Debug)]
 pub struct DataRow {
     /// Pressure in hPa
@@ -127,7 +127,7 @@ pub enum Profile {
     Pressure,
     /// Temperature in C
     Temperature,
-    /// Wet bulb temperature in C 
+    /// Wet bulb temperature in C
     WetBulb,
     /// Dew point in C
     DewPoint,
@@ -164,10 +164,10 @@ pub enum Surface {
     VWind,
 }
 
-/// Sounding indexes. 
-/// 
+/// Sounding indexes.
+///
 /// Note that the `Sounding` data type only saves indexes that may be loaded from a serialied data
-/// format such as a .bufr file or bufkit file. But this enum supports many more indexes which 
+/// format such as a .bufr file or bufkit file. But this enum supports many more indexes which
 /// might be calculated by a sounding analysis crate. When using `get_index`, it will always
 /// return a missing value if the index is not stored in this data type. If you try to `set_index`
 /// with an index that is not supported by the `Sounding` data type, it will panic in debug mode
@@ -205,13 +205,14 @@ pub enum Index {
 }
 
 impl Sounding {
-    
     /// Create a new sounding with default values. This is a proxy for default with a clearer name.
+    #[inline]
     pub fn new() -> Self {
         Sounding::default()
     }
 
     /// Set a profile variable
+    #[inline]
     pub fn set_profile(mut self, var: Profile, values: Vec<OptionVal<f64>>) -> Self {
         use self::Profile::*;
         match var {
@@ -227,10 +228,11 @@ impl Sounding {
             CloudFraction => self.cloud_fraction = values,
         };
 
-        self 
+        self
     }
 
     /// Get a profile variable as a slice
+    #[inline]
     pub fn get_profile(&self, var: Profile) -> &[OptionVal<f64>] {
         use self::Profile::*;
         match var {
@@ -248,8 +250,10 @@ impl Sounding {
     }
 
     /// Set a surface variable
-    pub fn set_surface_value<T>(mut self, var: Surface, value: T) -> Self 
-    where OptionVal<f64>: From<T>
+    #[inline]
+    pub fn set_surface_value<T>(mut self, var: Surface, value: T) -> Self
+    where
+        OptionVal<f64>: From<T>,
     {
         use self::Surface::*;
         match var {
@@ -265,7 +269,8 @@ impl Sounding {
         self
     }
 
-    /// Set a surface variable
+    /// Get a surface variable
+    #[inline]
     pub fn get_surface_value(&self, var: Surface) -> OptionVal<f64> {
         use self::Surface::*;
         match var {
@@ -280,11 +285,13 @@ impl Sounding {
     }
 
     /// Set an index value
-    pub fn set_index<T>(mut self, var:Index, value: T) -> Self 
-    where OptionVal<f64>: From<T>
+    #[inline]
+    pub fn set_index<T>(mut self, var: Index, value: T) -> Self
+    where
+        OptionVal<f64>: From<T>,
     {
         use self::Index::*;
-        
+
         match var {
             Showalter => self.show = OptionVal::from(value),
             LI => self.li = OptionVal::from(value),
@@ -302,22 +309,24 @@ impl Sounding {
             _not_used => {
                 #[cfg(debug_assert)]
                 {
-                    panic!(format!("The index {:?} is not stored in the Sounding datatype, \
-                        perhaps you want to use the sounding-analysis crate to create it.", 
-                        _not_used));
+                    panic!(format!(
+                        "The index {:?} is not stored in the Sounding datatype, \
+                        perhaps you want to use the sounding-analysis crate to create it.",
+                        _not_used
+                    ));
                 }
-                #[cfg(not(debug_assert))]
-                {}
-            },
+                #[cfg(not(debug_assert))] {}
+            }
         }
 
         self
     }
 
     /// Get an index value
-    pub fn get_index(&self, var:Index) -> OptionVal<f64> {
+    #[inline]
+    pub fn get_index(&self, var: Index) -> OptionVal<f64> {
         use self::Index::*;
-        
+
         match var {
             Showalter => self.show,
             LI => self.li,
@@ -335,40 +344,109 @@ impl Sounding {
             _not_used => {
                 #[cfg(debug_assert)]
                 {
-                    panic!(format!("The index {:?} is not stored in the Sounding datatype, \
-                        perhaps you want to use the sounding-analysis crate to create it.", 
-                        _not_used));
+                    panic!(format!(
+                        "The index {:?} is not stored in the Sounding datatype, \
+                        perhaps you want to use the sounding-analysis crate to create it.",
+                        _not_used
+                    ));
                 }
                 #[cfg(not(debug_assert))]
                 {
                     OptionVal::default()
                 }
-            },
+            }
         }
     }
 
     /// Get location information.
-    /// 
+    ///
     /// # returns
     /// `(latitude, longitude, elevation in meters)`
+    #[inline]
     pub fn get_location(&self) -> (OptionVal<f64>, OptionVal<f64>, OptionVal<f64>) {
         (self.lat, self.lon, self.elevation)
     }
 
     /// Set location information
-    pub fn set_location<T,U,V>(mut self, latitude: T, longitude: U, elevation: V) -> Self 
-    where OptionVal<f64>: From<T> + From<U> + From<V>
+    #[inline]
+    pub fn set_location<T, U, V>(mut self, latitude: T, longitude: U, elevation: V) -> Self
+    where
+        OptionVal<f64>: From<T> + From<U> + From<V>,
     {
         self.lat = OptionVal::from(latitude);
         self.lon = OptionVal::from(longitude);
         self.elevation = OptionVal::from(elevation);
-        
+
         self
     }
 
-    // TODO: get/set lead time, valid time, station number
+    /// Station number, USAF number, eg 727730
+    #[inline]
+    pub fn set_station_num<T>(mut self, station_num: T) -> Self
+    where
+        OptionVal<i32>: From<T>,
+    {
+        self.num = OptionVal::from(station_num);
+        self
+    }
 
-    // TODO: create iterators that return DataRows from the top down and bottom up.
+    /// Station number, USAF number, eg 727730
+    #[inline]
+    pub fn get_station_num(&self) -> OptionVal<i32> {
+        self.num
+    }
+
+    /// Difference in model initialization time and `valid_time` in hours.
+    #[inline]
+    pub fn set_lead_time<T>(mut self, lt: T) -> Self
+    where
+        OptionVal<i32>: From<T>,
+    {
+        self.lead_time = OptionVal::from(lt);
+        self
+    }
+
+    /// Difference in model initialization time and `valid_time` in hours.
+    #[inline]
+    pub fn get_lead_time(&self) -> OptionVal<i32> {
+        self.lead_time
+    }
+
+    /// Valid time of sounding
+    #[inline]
+    pub fn get_valid_time(&self) -> Option<NaiveDateTime> {
+        self.valid_time
+    }
+
+    /// Valid time of sounding
+    #[inline]
+    pub fn set_valid_time<T>(mut self, valid_time: T) -> Self
+    where
+        Option<NaiveDateTime>: From<T>,
+    {
+        self.valid_time = Option::from(valid_time);
+        self
+    }
+
+    /// Get a bottom up iterator over the data rows.
+    #[inline]
+    pub fn bottom_up(&self) -> ProfileIterator {
+        ProfileIterator {
+            next: 0,
+            direction: 1,
+            src: self,
+        }
+    }
+
+    /// Get a top down iterator over the data rows
+    #[inline]
+    pub fn top_down(&self) -> ProfileIterator {
+        ProfileIterator {
+            next: (self.pressure.len() - 1) as isize,
+            direction: -1,
+            src: self,
+        }
+    }
 
     /// Validates the sounding with some simple sanity checks. For instance, checks that pressure
     /// decreases with height.
@@ -540,6 +618,7 @@ impl Sounding {
     }
 
     /// Get a row of data values from this sounding.
+    #[inline]
     pub fn get_data_row(&self, idx: usize) -> Option<DataRow> {
 
         macro_rules! copy_to_result {
@@ -691,5 +770,23 @@ impl Sounding {
         }
 
         self.get_data_row(idx).unwrap()
+    }
+}
+
+/// Iterator over the data rows of a sounding.
+pub struct ProfileIterator<'a> {
+    next: isize,
+    direction: isize, // +1 for bottom up, -1 for top down
+    src: &'a Sounding,
+}
+
+impl<'a> Iterator for ProfileIterator<'a> {
+    type Item = DataRow;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        let result = self.src.get_data_row(self.next as usize);
+        self.next += self.direction;
+        result
     }
 }

@@ -26,12 +26,14 @@ where
     /// Convert it to an option. The into trait should cover this, but the compiler has troubles
     /// inferring the type, so this function is provided. The Into trait is still useful in contexts
     /// where the compiler can infer the type correctly, like the body of this function.
+    #[inline]
     pub fn as_option(self) -> Option<T> {
         self.into()
     }
 
     /// Despite its name, this method does not panic, it just returns the interior value even if
     /// that value is the 'Missing Data' flag value.
+    #[inline]
     pub fn unwrap(self) -> T {
         self.value
     }
@@ -41,6 +43,7 @@ impl<T> Into<Option<T>> for OptionVal<T>
 where
     T: PartialEq + Copy + MissingData<T>,
 {
+    #[inline]
     fn into(self) -> Option<T> {
         if self.value == T::MISSING {
             None
@@ -54,6 +57,7 @@ impl<T> Default for OptionVal<T>
 where
     T: PartialEq + Copy + MissingData<T>,
 {
+    #[inline]
     fn default() -> Self {
         OptionVal::from(T::MISSING)
     }
@@ -63,6 +67,7 @@ impl<T> From<Option<T>> for OptionVal<T>
 where
     T: PartialEq + Copy + MissingData<T>,
 {
+    #[inline]
     fn from(src: Option<T>) -> OptionVal<T> {
         if let Some(val) = src {
             OptionVal::from(val)
@@ -76,6 +81,7 @@ impl<T> From<T> for OptionVal<T>
 where
     T: PartialEq + Copy + MissingData<T>,
 {
+    #[inline]
     fn from(src: T) -> OptionVal<T> {
         OptionVal { value: src }
     }
