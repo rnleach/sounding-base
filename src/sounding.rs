@@ -2,7 +2,6 @@
 
 use chrono::NaiveDateTime;
 
-use error::*;
 use missing_value::OptionVal;
 
 /// All the variables stored in the sounding.
