@@ -120,7 +120,7 @@ pub struct DataRow {
 }
 
 /// Profile variables
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Profile {
     /// Pressure in hPa
     Pressure,
@@ -145,7 +145,7 @@ pub enum Profile {
 }
 
 /// Surface observed variables
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Surface {
     /// Surface pressure reduce to mean sea level (hPa)
     MSLP,
