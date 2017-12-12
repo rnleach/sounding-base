@@ -4,3 +4,8 @@
 /target/
 **/*.rs.bk
 Cargo.lock
+
+#
+# Editors
+#
+*.sublime-workspace

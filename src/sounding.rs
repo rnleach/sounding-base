@@ -95,7 +95,7 @@ pub struct Sounding {
 }
 
 /// A view of a row of the sounding data.
-#[derive(Clone,Default, Debug)]
+#[derive(Clone, Default, Copy, Debug)]
 pub struct DataRow {
     /// Pressure in hPa
     pub pressure: OptionVal<f64>,
