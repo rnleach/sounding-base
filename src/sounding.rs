@@ -310,11 +310,12 @@ impl Sounding {
                 {
                     panic!(format!(
                         "The index {:?} is not stored in the Sounding datatype, \
-                        perhaps you want to use the sounding-analysis crate to create it.",
+                         perhaps you want to use the sounding-analysis crate to create it.",
                         _not_used
                     ));
                 }
-                #[cfg(not(debug_assert))] {}
+                #[cfg(not(debug_assert))]
+                {}
             }
         }
 
@@ -345,7 +346,7 @@ impl Sounding {
                 {
                     panic!(format!(
                         "The index {:?} is not stored in the Sounding datatype, \
-                        perhaps you want to use the sounding-analysis crate to create it.",
+                         perhaps you want to use the sounding-analysis crate to create it.",
                         _not_used
                     ));
                 }
@@ -450,7 +451,6 @@ impl Sounding {
     /// Get a row of data values from this sounding.
     #[inline]
     pub fn get_data_row(&self, idx: usize) -> Option<DataRow> {
-
         macro_rules! copy_to_result {
             ($result:ident, $field:ident, $idx:ident) => {
                 match self.$field.get($idx) {
@@ -482,7 +482,6 @@ impl Sounding {
 
     /// Given a target pressure, return the row of data values closest to this one.
     pub fn fetch_nearest_pnt(&self, target_p: f64) -> DataRow {
-
         let mut idx: usize = 0;
         let mut best_abs_diff: f64 = ::std::f64::MAX;
         for (i, p) in self.pressure.iter().enumerate() {

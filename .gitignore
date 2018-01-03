@@ -1,11 +1,16 @@
-#
-# Rust/Cargo
-#
+//
+// cargo and rustc
+//
 /target/
 **/*.rs.bk
 Cargo.lock
 
-#
-# Editors
-#
+//
+// Sublime editor
+//
 *.sublime-workspace
+
+//
+// OS specific
+//
+.DS_Store

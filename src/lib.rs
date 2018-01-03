@@ -4,7 +4,7 @@
 extern crate chrono;
 
 pub mod missing_value;
-pub use missing_value::{OptionVal, MissingData};
+pub use missing_value::{MissingData, OptionVal};
 
 pub mod sounding;
-pub use sounding::{Sounding, DataRow, Profile, Surface, Index};
+pub use sounding::{DataRow, Index, Profile, Sounding, Surface};
