@@ -2,8 +2,6 @@
 
 use chrono::NaiveDateTime;
 
-use missing_value::OptionVal;
-
 /// All the variables stored in the sounding.
 ///
 /// The upper air profile variables are stored in parallel vectors. If a profile lacks a certain
@@ -14,109 +12,109 @@ use missing_value::OptionVal;
 pub struct Sounding {
     // Station info section
     /// station number, USAF number, eg 727730
-    num: OptionVal<i32>,
+    num: Option<i32>,
     /// Valid time of sounding
     valid_time: Option<NaiveDateTime>,
     /// Difference in model initialization time and `valid_time` in hours.
-    lead_time: OptionVal<i32>,
+    lead_time: Option<i32>,
     /// Latitude of grid point used to make sounding.
-    lat: OptionVal<f64>,
+    lat: Option<f64>,
     /// Longitude of grid point used to make sounding.
-    lon: OptionVal<f64>,
+    lon: Option<f64>,
     /// Elevation of grid point in meters, this is in model terrain, not necessarily the same as
     /// the real world.
-    elevation: OptionVal<f64>,
+    elevation: Option<f64>,
 
     // Sounding Indexes
     /// Showalter index
-    show: OptionVal<f64>,
+    show: Option<f64>,
     /// Lifted index
-    li: OptionVal<f64>,
+    li: Option<f64>,
     /// Severe Weather Threat Index
-    swet: OptionVal<f64>,
+    swet: Option<f64>,
     /// K-index
-    kinx: OptionVal<f64>,
+    kinx: Option<f64>,
     /// Lifting Condensation Level, or LCL (hPa), pressure vertical coordinate.
-    lclp: OptionVal<f64>,
+    lclp: Option<f64>,
     /// Precipitable Water (mm)
-    pwat: OptionVal<f64>,
+    pwat: Option<f64>,
     /// Total-Totals
-    totl: OptionVal<f64>,
+    totl: Option<f64>,
     /// Convective Available Potential Energy, or CAPE. (J/kg)
-    cape: OptionVal<f64>,
+    cape: Option<f64>,
     /// Temperature at LCL (K)
-    lclt: OptionVal<f64>,
+    lclt: Option<f64>,
     /// Convective Inhibitive Energy, or CIN (J/kg)
-    cins: OptionVal<f64>,
+    cins: Option<f64>,
     /// Equilibrium Level (hPa), pressure vertical coordinate
-    eqlv: OptionVal<f64>,
+    eqlv: Option<f64>,
     /// Level of Free Convection (hPa), pressure vertical coordinate
-    lfc: OptionVal<f64>,
+    lfc: Option<f64>,
     /// Bulk Richardson Number
-    brch: OptionVal<f64>,
+    brch: Option<f64>,
 
     // Upper air profile
     /// Pressure (hPa) profile
-    pressure: Vec<OptionVal<f64>>,
+    pressure: Vec<Option<f64>>,
     /// Temperature (c) profile
-    temperature: Vec<OptionVal<f64>>,
+    temperature: Vec<Option<f64>>,
     /// Wet-bulb (c) profile
-    wet_bulb: Vec<OptionVal<f64>>,
+    wet_bulb: Vec<Option<f64>>,
     /// Dew Point (C) profile
-    dew_point: Vec<OptionVal<f64>>,
+    dew_point: Vec<Option<f64>>,
     /// Equivalent Potential Temperature (K) profile
-    theta_e: Vec<OptionVal<f64>>,
+    theta_e: Vec<Option<f64>>,
     /// Wind direction (degrees) profile
-    direction: Vec<OptionVal<f64>>,
+    direction: Vec<Option<f64>>,
     /// Wind speed (knots) profile
-    speed: Vec<OptionVal<f64>>,
+    speed: Vec<Option<f64>>,
     /// Vertical velocity (Pa/sec), pressure vertical coordinate
-    omega: Vec<OptionVal<f64>>,
+    omega: Vec<Option<f64>>,
     /// Geopotential Height (m) profile
-    height: Vec<OptionVal<f64>>,
+    height: Vec<Option<f64>>,
     /// Cloud coverage fraction in percent
-    cloud_fraction: Vec<OptionVal<f64>>,
+    cloud_fraction: Vec<Option<f64>>,
 
     // Surface data
     /// Surface pressure reduce to mean sea level (hPa)
-    mslp: OptionVal<f64>,
+    mslp: Option<f64>,
     /// Surface pressure (hPa)
-    station_pres: OptionVal<f64>,
+    station_pres: Option<f64>,
     /// Low cloud fraction
-    low_cloud: OptionVal<f64>,
+    low_cloud: Option<f64>,
     /// Mid cloud fraction
-    mid_cloud: OptionVal<f64>,
+    mid_cloud: Option<f64>,
     /// Hi cloud fraction
-    hi_cloud: OptionVal<f64>,
+    hi_cloud: Option<f64>,
     /// U - wind speed (m/s) (West -> East is positive)
-    uwind: OptionVal<f64>,
+    uwind: Option<f64>,
     /// V - wind speed (m/s) (South -> North is positive)
-    vwind: OptionVal<f64>,
+    vwind: Option<f64>,
 }
 
 /// A view of a row of the sounding data.
 #[derive(Clone, Default, Copy, Debug)]
 pub struct DataRow {
     /// Pressure in hPa
-    pub pressure: OptionVal<f64>,
+    pub pressure: Option<f64>,
     /// Temperature in C
-    pub temperature: OptionVal<f64>,
+    pub temperature: Option<f64>,
     /// Wet bulb temperature in C
-    pub wet_bulb: OptionVal<f64>,
+    pub wet_bulb: Option<f64>,
     /// Dew point in C
-    pub dew_point: OptionVal<f64>,
+    pub dew_point: Option<f64>,
     /// Equivalent potential temperature in Kelvin
-    pub theta_e: OptionVal<f64>,
+    pub theta_e: Option<f64>,
     /// Wind direction (from) in degrees.
-    pub direction: OptionVal<f64>,
+    pub direction: Option<f64>,
     /// Wind speed in knots
-    pub speed: OptionVal<f64>,
+    pub speed: Option<f64>,
     /// Pressure vertical velocity in Pa/sec
-    pub omega: OptionVal<f64>,
+    pub omega: Option<f64>,
     /// Geopotential Height in meters
-    pub height: OptionVal<f64>,
+    pub height: Option<f64>,
     /// Cloud fraction in percent
-    pub cloud_fraction: OptionVal<f64>,
+    pub cloud_fraction: Option<f64>,
 }
 
 /// Profile variables
@@ -212,7 +210,7 @@ impl Sounding {
 
     /// Set a profile variable
     #[inline]
-    pub fn set_profile(mut self, var: Profile, values: Vec<OptionVal<f64>>) -> Self {
+    pub fn set_profile(mut self, var: Profile, values: Vec<Option<f64>>) -> Self {
         use self::Profile::*;
         match var {
             Pressure => self.pressure = values,
@@ -232,7 +230,7 @@ impl Sounding {
 
     /// Get a profile variable as a slice
     #[inline]
-    pub fn get_profile(&self, var: Profile) -> &[OptionVal<f64>] {
+    pub fn get_profile(&self, var: Profile) -> &[Option<f64>] {
         use self::Profile::*;
         match var {
             Pressure => &self.pressure,
@@ -252,17 +250,17 @@ impl Sounding {
     #[inline]
     pub fn set_surface_value<T>(mut self, var: Surface, value: T) -> Self
     where
-        OptionVal<f64>: From<T>,
+        Option<f64>: From<T>,
     {
         use self::Surface::*;
         match var {
-            MSLP => self.mslp = OptionVal::from(value),
-            StationPressure => self.station_pres = OptionVal::from(value),
-            LowCloud => self.low_cloud = OptionVal::from(value),
-            MidCloud => self.mid_cloud = OptionVal::from(value),
-            HighCloud => self.hi_cloud = OptionVal::from(value),
-            UWind => self.uwind = OptionVal::from(value),
-            VWind => self.vwind = OptionVal::from(value),
+            MSLP => self.mslp = Option::from(value),
+            StationPressure => self.station_pres = Option::from(value),
+            LowCloud => self.low_cloud = Option::from(value),
+            MidCloud => self.mid_cloud = Option::from(value),
+            HighCloud => self.hi_cloud = Option::from(value),
+            UWind => self.uwind = Option::from(value),
+            VWind => self.vwind = Option::from(value),
         };
 
         self
@@ -270,7 +268,7 @@ impl Sounding {
 
     /// Get a surface variable
     #[inline]
-    pub fn get_surface_value(&self, var: Surface) -> OptionVal<f64> {
+    pub fn get_surface_value(&self, var: Surface) -> Option<f64> {
         use self::Surface::*;
         match var {
             MSLP => self.mslp,
@@ -287,24 +285,24 @@ impl Sounding {
     #[inline]
     pub fn set_index<T>(mut self, var: Index, value: T) -> Self
     where
-        OptionVal<f64>: From<T>,
+        Option<f64>: From<T>,
     {
         use self::Index::*;
 
         match var {
-            Showalter => self.show = OptionVal::from(value),
-            LI => self.li = OptionVal::from(value),
-            SWeT => self.swet = OptionVal::from(value),
-            K => self.kinx = OptionVal::from(value),
-            LCL => self.lclp = OptionVal::from(value),
-            PWAT => self.pwat = OptionVal::from(value),
-            TotalTotals => self.totl = OptionVal::from(value),
-            CAPE => self.cape = OptionVal::from(value),
-            LCLTemperature => self.lclt = OptionVal::from(value),
-            CIN => self.cins = OptionVal::from(value),
-            EquilibrimLevel => self.eqlv = OptionVal::from(value),
-            LFC => self.lfc = OptionVal::from(value),
-            BulkRichardsonNumber => self.brch = OptionVal::from(value),
+            Showalter => self.show = Option::from(value),
+            LI => self.li = Option::from(value),
+            SWeT => self.swet = Option::from(value),
+            K => self.kinx = Option::from(value),
+            LCL => self.lclp = Option::from(value),
+            PWAT => self.pwat = Option::from(value),
+            TotalTotals => self.totl = Option::from(value),
+            CAPE => self.cape = Option::from(value),
+            LCLTemperature => self.lclt = Option::from(value),
+            CIN => self.cins = Option::from(value),
+            EquilibrimLevel => self.eqlv = Option::from(value),
+            LFC => self.lfc = Option::from(value),
+            BulkRichardsonNumber => self.brch = Option::from(value),
             _not_used => {
                 #[cfg(debug_assert)]
                 {
@@ -324,7 +322,7 @@ impl Sounding {
 
     /// Get an index value
     #[inline]
-    pub fn get_index(&self, var: Index) -> OptionVal<f64> {
+    pub fn get_index(&self, var: Index) -> Option<f64> {
         use self::Index::*;
 
         match var {
@@ -352,7 +350,7 @@ impl Sounding {
                 }
                 #[cfg(not(debug_assert))]
                 {
-                    OptionVal::default()
+                    None
                 }
             }
         }
@@ -363,7 +361,7 @@ impl Sounding {
     /// # returns
     /// `(latitude, longitude, elevation in meters)`
     #[inline]
-    pub fn get_location(&self) -> (OptionVal<f64>, OptionVal<f64>, OptionVal<f64>) {
+    pub fn get_location(&self) -> (Option<f64>, Option<f64>, Option<f64>) {
         (self.lat, self.lon, self.elevation)
     }
 
@@ -371,11 +369,11 @@ impl Sounding {
     #[inline]
     pub fn set_location<T, U, V>(mut self, latitude: T, longitude: U, elevation: V) -> Self
     where
-        OptionVal<f64>: From<T> + From<U> + From<V>,
+        Option<f64>: From<T> + From<U> + From<V>,
     {
-        self.lat = OptionVal::from(latitude);
-        self.lon = OptionVal::from(longitude);
-        self.elevation = OptionVal::from(elevation);
+        self.lat = Option::from(latitude);
+        self.lon = Option::from(longitude);
+        self.elevation = Option::from(elevation);
 
         self
     }
@@ -384,15 +382,15 @@ impl Sounding {
     #[inline]
     pub fn set_station_num<T>(mut self, station_num: T) -> Self
     where
-        OptionVal<i32>: From<T>,
+        Option<i32>: From<T>,
     {
-        self.num = OptionVal::from(station_num);
+        self.num = Option::from(station_num);
         self
     }
 
     /// Station number, USAF number, eg 727730
     #[inline]
-    pub fn get_station_num(&self) -> OptionVal<i32> {
+    pub fn get_station_num(&self) -> Option<i32> {
         self.num
     }
 
@@ -400,15 +398,15 @@ impl Sounding {
     #[inline]
     pub fn set_lead_time<T>(mut self, lt: T) -> Self
     where
-        OptionVal<i32>: From<T>,
+        Option<i32>: From<T>,
     {
-        self.lead_time = OptionVal::from(lt);
+        self.lead_time = Option::from(lt);
         self
     }
 
     /// Difference in model initialization time and `valid_time` in hours.
     #[inline]
-    pub fn get_lead_time(&self) -> OptionVal<i32> {
+    pub fn get_lead_time(&self) -> Option<i32> {
         self.lead_time
     }
 
@@ -485,7 +483,7 @@ impl Sounding {
         let mut idx: usize = 0;
         let mut best_abs_diff: f64 = ::std::f64::MAX;
         for (i, p) in self.pressure.iter().enumerate() {
-            if let Some(p) = p.as_option() {
+            if let Some(p) = *p {
                 let abs_diff = (target_p - p).abs();
                 if abs_diff < best_abs_diff {
                     best_abs_diff = abs_diff;
