@@ -9,4 +9,4 @@ pub use sounding::{DataRow, Index, Profile, Sounding, Surface};
 
 /// The size used in `smallvec` for the number of items to place on the stack. This is mainly used
 /// in derived crates.
-pub const SMALL_VEC_SIZE: usize = 3;
+pub const SMALL_VEC_SIZE: usize = 2;
