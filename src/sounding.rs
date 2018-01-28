@@ -118,7 +118,7 @@ pub struct DataRow {
 }
 
 /// Profile variables
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Profile {
     /// Pressure in hPa
     Pressure,
@@ -143,7 +143,7 @@ pub enum Profile {
 }
 
 /// Surface observed variables
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Surface {
     /// Surface pressure reduce to mean sea level (hPa)
     MSLP,
@@ -169,7 +169,7 @@ pub enum Surface {
 /// return a missing value if the index is not stored in this data type. If you try to `set_index`
 /// with an index that is not supported by the `Sounding` data type, it will panic in debug mode
 /// and silently fail in release mode.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Index {
     /// Showalter index
     Showalter,
