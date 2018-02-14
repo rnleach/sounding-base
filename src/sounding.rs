@@ -190,20 +190,29 @@ impl StationInfo {
     }
 
     /// Builder method to add a station number.
-    pub fn with_station<T>(mut self, number: T) -> Self where Option<i32>: From<T> {
+    pub fn with_station<T>(mut self, number: T) -> Self
+    where
+        Option<i32>: From<T>,
+    {
         self.num = Option::from(number);
 
         self
     }
 
     /// Builder method to add a location.
-    pub fn with_lat_lon<T>(mut self, coords: T) -> Self where Option<(f64,f64)>: From<T> {
+    pub fn with_lat_lon<T>(mut self, coords: T) -> Self
+    where
+        Option<(f64, f64)>: From<T>,
+    {
         self.location = Option::from(coords);
         self
     }
 
     /// Builder method to add elevation.
-    pub fn with_elevation<T>(mut self, elev: T) -> Self where Option<f64>: From<T> {
+    pub fn with_elevation<T>(mut self, elev: T) -> Self
+    where
+        Option<f64>: From<T>,
+    {
         self.elevation = Option::from(elev);
         self
     }
@@ -586,13 +595,13 @@ impl Sounding {
         self.lead_time
     }
 
-    /// Valid time of sounding
+    /// Valid time of the sounding
     #[inline]
     pub fn get_valid_time(&self) -> Option<NaiveDateTime> {
         self.valid_time
     }
 
-    /// Valid time of sounding
+    /// Builder method to set the valid time of the sounding
     #[inline]
     pub fn set_valid_time<T>(mut self, valid_time: T) -> Self
     where
@@ -602,7 +611,8 @@ impl Sounding {
         self
     }
 
-    /// Get a bottom up iterator over the data rows.
+    /// Get a bottom up iterator over the data rows. The first value returned from the iterator is
+    /// surface values.
     #[inline]
     pub fn bottom_up(&self) -> ProfileIterator {
         ProfileIterator {
@@ -613,11 +623,11 @@ impl Sounding {
         }
     }
 
-    /// Get a top down iterator over the data rows
+    /// Get a top down iterator over the data rows. The last value returned is the surface values.
     #[inline]
     pub fn top_down(&self) -> ProfileIterator {
         ProfileIterator {
-            next_value: self.get_data_row(self.pressure.len() - 1), 
+            next_value: self.get_data_row(self.pressure.len() - 1),
             next_idx: (self.pressure.len() - 2) as isize,
             direction: -1,
             src: self,
@@ -656,9 +666,9 @@ impl Sounding {
         Some(result)
     }
 
-    /// Get the surface values in a `DataRow` format
+    /// Get the surface values in a `DataRow` format.
     #[inline]
-    pub fn surface_as_data_row(&self)-> DataRow {
+    pub fn surface_as_data_row(&self) -> DataRow {
         let mut result = DataRow::default();
         result.pressure = self.station_pres;
         result.temperature = self.sfc_temperature;
@@ -679,10 +689,13 @@ impl Sounding {
 
     /// Given a target pressure, return the row of data values closest to this one.
     pub fn fetch_nearest_pnt(&self, target_p: f64) -> DataRow {
-        // FIXME: initialize this to the surface values.
         let mut idx: usize = 0;
         let mut best_abs_diff: f64 = ::std::f64::MAX;
-        for (i, p) in self.pressure.iter().enumerate() {
+        let sfc_pressure = &self.get_surface_value(Surface::StationPressure);
+        for (i, p) in ::std::iter::once(sfc_pressure)
+            .chain(self.pressure.iter())
+            .enumerate()
+        {
             if let Some(p) = *p {
                 let abs_diff = (target_p - p).abs();
                 if abs_diff < best_abs_diff {
@@ -695,11 +708,16 @@ impl Sounding {
             }
         }
 
-        self.get_data_row(idx).unwrap()
+        if idx == 0 {
+            self.surface_as_data_row()
+        } else {
+            self.get_data_row(idx - 1).unwrap()
+        }
     }
 }
 
-/// Iterator over the data rows of a sounding.
+/// Iterator over the data rows of a sounding. This may be a top down or bottom up iterator where
+/// either the last or first row returned is the surface data.
 pub struct ProfileIterator<'a> {
     next_value: Option<DataRow>,
     next_idx: isize,
@@ -714,7 +732,7 @@ impl<'a> Iterator for ProfileIterator<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         let result = self.next_value;
         self.next_value = if self.next_idx > 0 {
-              self.src.get_data_row(self.next_idx as usize)
+            self.src.get_data_row(self.next_idx as usize)
         } else if self.next_idx == -1 {
             Some(self.src.surface_as_data_row())
         } else {
