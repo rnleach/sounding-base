@@ -336,7 +336,7 @@ pub struct Sounding {
     mid_cloud: Option<f64>,
     /// Hi cloud fraction
     hi_cloud: Option<f64>,
-    /// U - wind speed (m/s) (West -> East is positive) // FIXME: really m/s?
+    /// U - wind speed (m/s) (West -> East is positive)
     uwind: Option<f64>,
     /// V - wind speed (m/s) (South -> North is positive)
     vwind: Option<f64>,
@@ -673,17 +673,43 @@ impl Sounding {
         result.pressure = self.station_pres;
         result.temperature = self.sfc_temperature;
         result.dew_point = self.sfc_dew_point;
-        if result.temperature.is_some() && result.dew_point.is_some() && result.pressure.is_some() {
-            let temp = result.temperature.unwrap();
-            let dp = result.dew_point.unwrap();
-            let pres = result.pressure.unwrap();
-            // TODO: Calculate wet bulb.
-        }
-        // TODO: Calculate theta-e
-        // TODO: Calculate wind direction
-        // TODO: Calculate wind speed
+
+        result.wet_bulb = self.station_pres.and_then(|p| {
+            self.sfc_temperature.and_then(|t| {
+                self.sfc_dew_point
+                    .and_then(|dp| Some(::metfor::wet_bulb_c(t, dp, p)))
+            })
+        });
+
+        result.theta_e = self.station_pres.and_then(|p| {
+            self.sfc_temperature.and_then(|t| {
+                self.sfc_dew_point
+                    .and_then(|dp| Some(::metfor::theta_e_kelvin(t, dp, p)))
+            })
+        });
+
+        result.direction = self.uwind.and_then(|u| {
+            self.vwind.and_then(|v| {
+                let mut direction = v.atan2(u).to_degrees();
+                while direction > 360.0 {
+                    direction -= 360.0;
+                }
+                while direction < 0.0 {
+                    direction += 360.0;
+                }
+                Some(direction)
+            })
+        });
+
+        result.speed = self.uwind.and_then(|u| {
+            self.vwind.and_then(|v| {
+                Some(u.hypot(v) * 1.94384) // multiply by factor for conversiont from mps to knots
+            })
+        });
+
         result.omega = Some(0.0);
         result.height = self.station.elevation;
+
         result
     }
 

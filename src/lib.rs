@@ -4,5 +4,7 @@
 extern crate chrono;
 extern crate smallvec;
 
+extern crate metfor;
+
 pub mod sounding;
 pub use sounding::{DataRow, Index, Profile, Sounding, StationInfo, Surface};
