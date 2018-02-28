@@ -677,14 +677,14 @@ impl Sounding {
         result.wet_bulb = self.station_pres.and_then(|p| {
             self.sfc_temperature.and_then(|t| {
                 self.sfc_dew_point
-                    .and_then(|dp| Some(::metfor::wet_bulb_c(t, dp, p)))
+                    .and_then(|dp| ::metfor::wet_bulb_c(t, dp, p).ok())
             })
         });
 
         result.theta_e = self.station_pres.and_then(|p| {
             self.sfc_temperature.and_then(|t| {
                 self.sfc_dew_point
-                    .and_then(|dp| Some(::metfor::theta_e_kelvin(t, dp, p)))
+                    .and_then(|dp| ::metfor::theta_e_kelvin(t, dp, p).ok())
             })
         });
 

@@ -15,5 +15,5 @@ keywords = ["weather","sounding","meteorology", "skew-t"]
 [dependencies]
 chrono="^0.4"
 smallvec="0.6.0"
-metfor={ git = "https://github.com/rnleach/metfor.git" }
+metfor="^0.2.0"
 
