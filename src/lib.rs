@@ -1,4 +1,4 @@
-#![warn(missing_docs)]
+#![deny(missing_docs)]
 //! Library to represent an atmospheric sounding with pressure as the vertical coordinate.
 
 //
