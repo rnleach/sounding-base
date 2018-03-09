@@ -61,10 +61,16 @@ pub enum Surface {
     MidCloud,
     /// Hi cloud fraction
     HighCloud,
+    #[deprecated]
     /// U - wind speed (m/s) (West -> East is positive)
     UWind,
+    #[deprecated]
     /// V - wind speed (m/s) (South -> North is positive)
     VWind,
+    /// Wind Direction in degrees. This is the direction the wind is coming from.
+    WindDirection,
+    /// Wind speed in knots.
+    WindSpeed,
     /// 2 meter temperatures (C)
     Temperature,
     /// 2 meter dew point (C)
@@ -74,6 +80,7 @@ pub enum Surface {
 }
 
 impl fmt::Display for Surface {
+    #[allow(deprecated)] // FIXME: Remove once deprecated variants are removed.
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         use Surface::*;
         let string_rep = match *self {
@@ -84,73 +91,11 @@ impl fmt::Display for Surface {
             HighCloud => "high cloud fraction",
             UWind => "west to east wind",
             VWind => "south to north wind",
+            WindDirection => "wind direction",
+            WindSpeed => "wind speed",
             Temperature => "2-meter temperature",
             DewPoint => "2-meter dew point",
             Precipitation => "precipitation (liquid equivalent)",
-        };
-
-        write!(f, "{}", string_rep)
-    }
-}
-
-/// Sounding indexes.
-///
-/// Note that the `Sounding` data type only saves indexes that may be loaded from a serialized data
-/// format such as a .bufr file or bufkit file. But this enum supports many more indexes which
-/// might be calculated by a sounding analysis crate. When using `get_index`, it will always
-/// return a missing value if the index is not stored in this data type. If you try to `set_index`
-/// with an index that is not supported by the `Sounding` data type, it will panic in debug mode
-/// and silently fail in release mode.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Index {
-    /// Showalter index
-    Showalter,
-    /// Lifted index
-    LI,
-    /// Severe Weather Threat Index
-    SWeT,
-    /// K-index
-    K,
-    /// Lifting Condensation Level, or LCL (hPa), pressure vertical coordinate.
-    LCL,
-    /// Precipitable Water (mm)
-    PWAT,
-    /// Total-Totals
-    TotalTotals,
-    /// Convective Available Potential Energy, or CAPE. (J/kg)
-    CAPE,
-    /// Temperature at LCL (K)
-    LCLTemperature,
-    /// Convective Inhibitive Energy, or CIN (J/kg)
-    CIN,
-    /// Equilibrium Level (hPa), pressure vertical coordinate
-    EquilibrimLevel,
-    /// Level of Free Convection (hPa), pressure vertical coordinate
-    LFC,
-    /// Bulk Richardson Number
-    BulkRichardsonNumber,
-    /// Haines index
-    Haines,
-}
-
-impl fmt::Display for Index {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        use Index::*;
-        let string_rep = match *self {
-            Showalter => "Showalter index",
-            LI => "lifted index (LI)",
-            SWeT => "severe weather threat index",
-            K => "k index",
-            LCL => "lifting condensation level (LCL)",
-            PWAT => "precipitable water (PWAT)",
-            TotalTotals => "total totals index (TT)",
-            CAPE => "convective available potential energy (CAPE)",
-            LCLTemperature => "temperature at the lifting condensation level (LCL)",
-            CIN => "convective inhibition (CIN)",
-            EquilibrimLevel => "equilibruim level",
-            LFC => "level of free convection",
-            BulkRichardsonNumber => "bulk Richardson number",
-            Haines => "Haines index",
         };
 
         write!(f, "{}", string_rep)
@@ -235,7 +180,7 @@ impl StationInfo {
 }
 
 /// A view of a row of the sounding data.
-#[derive(Clone, Default, Copy, Debug)]
+#[derive(Clone, Default, Copy, Debug, PartialEq)]
 pub struct DataRow {
     /// Pressure in hPa
     pub pressure: Option<f64>,
@@ -275,34 +220,6 @@ pub struct Sounding {
     /// Difference in model initialization time and `valid_time` in hours.
     lead_time: Option<i32>,
 
-    // Sounding Indexes
-    /// Showalter index
-    show: Option<f64>,
-    /// Lifted index
-    li: Option<f64>,
-    /// Severe Weather Threat Index
-    swet: Option<f64>,
-    /// K-index
-    kinx: Option<f64>,
-    /// Lifting Condensation Level, or LCL (hPa), pressure vertical coordinate.
-    lclp: Option<f64>,
-    /// Precipitable Water (mm)
-    pwat: Option<f64>,
-    /// Total-Totals
-    totl: Option<f64>,
-    /// Convective Available Potential Energy, or CAPE. (J/kg)
-    cape: Option<f64>,
-    /// Temperature at LCL (K)
-    lclt: Option<f64>,
-    /// Convective Inhibitive Energy, or CIN (J/kg)
-    cins: Option<f64>,
-    /// Equilibrium Level (hPa), pressure vertical coordinate
-    eqlv: Option<f64>,
-    /// Level of Free Convection (hPa), pressure vertical coordinate
-    lfc: Option<f64>,
-    /// Bulk Richardson Number
-    brch: Option<f64>,
-
     // Upper air profile
     /// Pressure (hPa) profile
     pressure: Vec<Option<f64>>,
@@ -336,10 +253,15 @@ pub struct Sounding {
     mid_cloud: Option<f64>,
     /// Hi cloud fraction
     hi_cloud: Option<f64>,
+    // FIXME: remove uwind and vwind due to deprecation.
     /// U - wind speed (m/s) (West -> East is positive)
     uwind: Option<f64>,
     /// V - wind speed (m/s) (South -> North is positive)
     vwind: Option<f64>,
+    /// Wind direction
+    wind_dir: Option<f64>,
+    /// Wind speed in knots
+    wind_spd: Option<f64>,
     /// 2 meter  temperature
     sfc_temperature: Option<f64>,
     /// 2 meter dew point
@@ -407,6 +329,7 @@ impl Sounding {
     }
 
     /// Set a surface variable
+    #[allow(deprecated)] // FIXME: Remove once deprecated variants are removed.
     #[inline]
     pub fn set_surface_value<T>(mut self, var: Surface, value: T) -> Self
     where
@@ -421,6 +344,8 @@ impl Sounding {
             HighCloud => self.hi_cloud = Option::from(value),
             UWind => self.uwind = Option::from(value),
             VWind => self.vwind = Option::from(value),
+            WindDirection => self.wind_dir = Option::from(value),
+            WindSpeed => self.wind_spd = Option::from(value),
             Temperature => self.sfc_temperature = Option::from(value),
             DewPoint => self.sfc_dew_point = Option::from(value),
             Precipitation => self.precip = Option::from(value),
@@ -430,6 +355,7 @@ impl Sounding {
     }
 
     /// Get a surface variable
+    #[allow(deprecated)] // FIXME: Remove once deprecated variants are removed.
     #[inline]
     pub fn get_surface_value(&self, var: Surface) -> Option<f64> {
         use self::Surface::*;
@@ -441,84 +367,11 @@ impl Sounding {
             HighCloud => self.hi_cloud,
             UWind => self.uwind,
             VWind => self.vwind,
+            WindDirection => self.wind_dir,
+            WindSpeed => self.wind_spd,
             Temperature => self.sfc_temperature,
             DewPoint => self.sfc_dew_point,
             Precipitation => self.precip.map(|pp| pp * 25.4), // convert from mm to inches.
-        }
-    }
-
-    /// Set an index value
-    #[inline]
-    pub fn set_index<T>(mut self, var: Index, value: T) -> Self
-    where
-        Option<f64>: From<T>,
-    {
-        use self::Index::*;
-
-        match var {
-            Showalter => self.show = Option::from(value),
-            LI => self.li = Option::from(value),
-            SWeT => self.swet = Option::from(value),
-            K => self.kinx = Option::from(value),
-            LCL => self.lclp = Option::from(value),
-            PWAT => self.pwat = Option::from(value),
-            TotalTotals => self.totl = Option::from(value),
-            CAPE => self.cape = Option::from(value),
-            LCLTemperature => self.lclt = Option::from(value),
-            CIN => self.cins = Option::from(value),
-            EquilibrimLevel => self.eqlv = Option::from(value),
-            LFC => self.lfc = Option::from(value),
-            BulkRichardsonNumber => self.brch = Option::from(value),
-            _not_used => {
-                #[cfg(debug_assert)]
-                {
-                    panic!(format!(
-                        "The index {:?} is not stored in the Sounding datatype, \
-                         perhaps you want to use the sounding-analysis crate to create it.",
-                        _not_used
-                    ));
-                }
-                #[cfg(not(debug_assert))]
-                {}
-            }
-        }
-
-        self
-    }
-
-    /// Get an index value
-    #[inline]
-    pub fn get_index(&self, var: Index) -> Option<f64> {
-        use self::Index::*;
-
-        match var {
-            Showalter => self.show,
-            LI => self.li,
-            SWeT => self.swet,
-            K => self.kinx,
-            LCL => self.lclp,
-            PWAT => self.pwat,
-            TotalTotals => self.totl,
-            CAPE => self.cape,
-            LCLTemperature => self.lclt,
-            CIN => self.cins,
-            EquilibrimLevel => self.eqlv,
-            LFC => self.lfc,
-            BulkRichardsonNumber => self.brch,
-            _not_used => {
-                #[cfg(debug_assert)]
-                {
-                    panic!(format!(
-                        "The index {:?} is not stored in the Sounding datatype, \
-                         perhaps you want to use the sounding-analysis crate to create it.",
-                        _not_used
-                    ));
-                }
-                #[cfg(not(debug_assert))]
-                {
-                    None
-                }
-            }
         }
     }
 
@@ -548,15 +401,9 @@ impl Sounding {
     {
         let lat = Option::from(latitude);
         let lon = Option::from(longitude);
-        let elevation = Option::from(elevation);
 
-        let mut location = None;
-        if lat.is_some() && lon.is_some() {
-            location = Some((lat.unwrap(), lon.unwrap()));
-        }
-
-        self.station.location = location;
-        self.station.elevation = elevation;
+        self.station.location = lat.and_then(|lat| lon.and_then(|lon| Some((lat, lon))));
+        self.station.elevation = Option::from(elevation);
 
         self
     }
@@ -688,24 +535,28 @@ impl Sounding {
             })
         });
 
-        result.direction = self.uwind.and_then(|u| {
-            self.vwind.and_then(|v| {
-                let mut direction = v.atan2(u).to_degrees();
-                while direction > 360.0 {
-                    direction -= 360.0;
-                }
-                while direction < 0.0 {
-                    direction += 360.0;
-                }
-                Some(direction)
+        result.direction = self.uwind
+            .and_then(|u| {
+                self.vwind.and_then(|v| {
+                    let mut direction = v.atan2(u).to_degrees();
+                    while direction > 360.0 {
+                        direction -= 360.0;
+                    }
+                    while direction < 0.0 {
+                        direction += 360.0;
+                    }
+                    Some(direction)
+                })
             })
-        });
+            .or(self.wind_dir);
 
-        result.speed = self.uwind.and_then(|u| {
-            self.vwind.and_then(|v| {
-                Some(u.hypot(v) * 1.94384) // multiply by factor for conversiont from mps to knots
+        result.speed = self.uwind
+            .and_then(|u| {
+                self.vwind.and_then(|v| {
+                    Some(u.hypot(v) * 1.94384) // multiply by factor for conversiont from mps to knots
+                })
             })
-        });
+            .or(self.wind_spd);
 
         result.omega = Some(0.0);
         result.height = self.station.elevation;
@@ -757,7 +608,7 @@ impl<'a> Iterator for ProfileIterator<'a> {
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         let result = self.next_value;
-        self.next_value = if self.next_idx > 0 {
+        self.next_value = if self.next_idx >= 0 {
             self.src.get_data_row(self.next_idx as usize)
         } else if self.next_idx == -1 {
             Some(self.src.surface_as_data_row())
