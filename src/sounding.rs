@@ -180,7 +180,7 @@ impl StationInfo {
 }
 
 /// A view of a row of the sounding data.
-#[derive(Clone, Default, Copy, Debug)]
+#[derive(Clone, Default, Copy, Debug, PartialEq)]
 pub struct DataRow {
     /// Pressure in hPa
     pub pressure: Option<f64>,
