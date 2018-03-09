@@ -61,10 +61,16 @@ pub enum Surface {
     MidCloud,
     /// Hi cloud fraction
     HighCloud,
+    #[deprecated]
     /// U - wind speed (m/s) (West -> East is positive)
     UWind,
+    #[deprecated]
     /// V - wind speed (m/s) (South -> North is positive)
     VWind,
+    /// Wind Direction in degrees. This is the direction the wind is coming from.
+    WindDirection,
+    /// Wind speed in knots.
+    WindSpeed,
     /// 2 meter temperatures (C)
     Temperature,
     /// 2 meter dew point (C)
@@ -74,6 +80,7 @@ pub enum Surface {
 }
 
 impl fmt::Display for Surface {
+    #[allow(deprecated)] // FIXME: Remove once deprecated variants are removed.
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         use Surface::*;
         let string_rep = match *self {
@@ -84,6 +91,8 @@ impl fmt::Display for Surface {
             HighCloud => "high cloud fraction",
             UWind => "west to east wind",
             VWind => "south to north wind",
+            WindDirection => "wind direction",
+            WindSpeed => "wind speed",
             Temperature => "2-meter temperature",
             DewPoint => "2-meter dew point",
             Precipitation => "precipitation (liquid equivalent)",
@@ -244,10 +253,15 @@ pub struct Sounding {
     mid_cloud: Option<f64>,
     /// Hi cloud fraction
     hi_cloud: Option<f64>,
+    // FIXME: remove uwind and vwind due to deprecation.
     /// U - wind speed (m/s) (West -> East is positive)
     uwind: Option<f64>,
     /// V - wind speed (m/s) (South -> North is positive)
     vwind: Option<f64>,
+    /// Wind direction
+    wind_dir: Option<f64>,
+    /// Wind speed in knots
+    wind_spd: Option<f64>,
     /// 2 meter  temperature
     sfc_temperature: Option<f64>,
     /// 2 meter dew point
@@ -315,6 +329,7 @@ impl Sounding {
     }
 
     /// Set a surface variable
+    #[allow(deprecated)] // FIXME: Remove once deprecated variants are removed.
     #[inline]
     pub fn set_surface_value<T>(mut self, var: Surface, value: T) -> Self
     where
@@ -329,6 +344,8 @@ impl Sounding {
             HighCloud => self.hi_cloud = Option::from(value),
             UWind => self.uwind = Option::from(value),
             VWind => self.vwind = Option::from(value),
+            WindDirection => self.wind_dir = Option::from(value),
+            WindSpeed => self.wind_spd = Option::from(value),
             Temperature => self.sfc_temperature = Option::from(value),
             DewPoint => self.sfc_dew_point = Option::from(value),
             Precipitation => self.precip = Option::from(value),
@@ -338,6 +355,7 @@ impl Sounding {
     }
 
     /// Get a surface variable
+    #[allow(deprecated)] // FIXME: Remove once deprecated variants are removed.
     #[inline]
     pub fn get_surface_value(&self, var: Surface) -> Option<f64> {
         use self::Surface::*;
@@ -349,6 +367,8 @@ impl Sounding {
             HighCloud => self.hi_cloud,
             UWind => self.uwind,
             VWind => self.vwind,
+            WindDirection => self.wind_dir,
+            WindSpeed => self.wind_spd,
             Temperature => self.sfc_temperature,
             DewPoint => self.sfc_dew_point,
             Precipitation => self.precip.map(|pp| pp * 25.4), // convert from mm to inches.
@@ -515,24 +535,28 @@ impl Sounding {
             })
         });
 
-        result.direction = self.uwind.and_then(|u| {
-            self.vwind.and_then(|v| {
-                let mut direction = v.atan2(u).to_degrees();
-                while direction > 360.0 {
-                    direction -= 360.0;
-                }
-                while direction < 0.0 {
-                    direction += 360.0;
-                }
-                Some(direction)
+        result.direction = self.uwind
+            .and_then(|u| {
+                self.vwind.and_then(|v| {
+                    let mut direction = v.atan2(u).to_degrees();
+                    while direction > 360.0 {
+                        direction -= 360.0;
+                    }
+                    while direction < 0.0 {
+                        direction += 360.0;
+                    }
+                    Some(direction)
+                })
             })
-        });
+            .or(self.wind_dir);
 
-        result.speed = self.uwind.and_then(|u| {
-            self.vwind.and_then(|v| {
-                Some(u.hypot(v) * 1.94384) // multiply by factor for conversiont from mps to knots
+        result.speed = self.uwind
+            .and_then(|u| {
+                self.vwind.and_then(|v| {
+                    Some(u.hypot(v) * 1.94384) // multiply by factor for conversiont from mps to knots
+                })
             })
-        });
+            .or(self.wind_spd);
 
         result.omega = Some(0.0);
         result.height = self.station.elevation;
