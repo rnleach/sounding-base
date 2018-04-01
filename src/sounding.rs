@@ -61,12 +61,6 @@ pub enum Surface {
     MidCloud,
     /// Hi cloud fraction
     HighCloud,
-    #[deprecated]
-    /// U - wind speed (m/s) (West -> East is positive)
-    UWind,
-    #[deprecated]
-    /// V - wind speed (m/s) (South -> North is positive)
-    VWind,
     /// Wind Direction in degrees. This is the direction the wind is coming from.
     WindDirection,
     /// Wind speed in knots.
@@ -80,7 +74,6 @@ pub enum Surface {
 }
 
 impl fmt::Display for Surface {
-    #[allow(deprecated)] // FIXME: Remove once deprecated variants are removed.
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         use Surface::*;
         let string_rep = match *self {
@@ -89,8 +82,6 @@ impl fmt::Display for Surface {
             LowCloud => "low cloud fraction",
             MidCloud => "mid cloud fraction",
             HighCloud => "high cloud fraction",
-            UWind => "west to east wind",
-            VWind => "south to north wind",
             WindDirection => "wind direction",
             WindSpeed => "wind speed",
             Temperature => "2-meter temperature",
@@ -253,11 +244,6 @@ pub struct Sounding {
     mid_cloud: Option<f64>,
     /// Hi cloud fraction
     hi_cloud: Option<f64>,
-    // FIXME: remove uwind and vwind due to deprecation.
-    /// U - wind speed (m/s) (West -> East is positive)
-    uwind: Option<f64>,
-    /// V - wind speed (m/s) (South -> North is positive)
-    vwind: Option<f64>,
     /// Wind direction
     wind_dir: Option<f64>,
     /// Wind speed in knots
@@ -329,7 +315,6 @@ impl Sounding {
     }
 
     /// Set a surface variable
-    #[allow(deprecated)] // FIXME: Remove once deprecated variants are removed.
     #[inline]
     pub fn set_surface_value<T>(mut self, var: Surface, value: T) -> Self
     where
@@ -342,8 +327,6 @@ impl Sounding {
             LowCloud => self.low_cloud = Option::from(value),
             MidCloud => self.mid_cloud = Option::from(value),
             HighCloud => self.hi_cloud = Option::from(value),
-            UWind => self.uwind = Option::from(value),
-            VWind => self.vwind = Option::from(value),
             WindDirection => self.wind_dir = Option::from(value),
             WindSpeed => self.wind_spd = Option::from(value),
             Temperature => self.sfc_temperature = Option::from(value),
@@ -355,7 +338,6 @@ impl Sounding {
     }
 
     /// Get a surface variable
-    #[allow(deprecated)] // FIXME: Remove once deprecated variants are removed.
     #[inline]
     pub fn get_surface_value(&self, var: Surface) -> Option<f64> {
         use self::Surface::*;
@@ -365,65 +347,12 @@ impl Sounding {
             LowCloud => self.low_cloud,
             MidCloud => self.mid_cloud,
             HighCloud => self.hi_cloud,
-            UWind => self.uwind,
-            VWind => self.vwind,
             WindDirection => self.wind_dir,
             WindSpeed => self.wind_spd,
             Temperature => self.sfc_temperature,
             DewPoint => self.sfc_dew_point,
             Precipitation => self.precip.map(|pp| pp * 25.4), // convert from mm to inches.
         }
-    }
-
-    /// Get location information.
-    ///
-    /// # returns
-    /// `(latitude, longitude, elevation in meters)`
-    #[inline]
-    #[deprecated]
-    pub fn get_location(&self) -> (Option<f64>, Option<f64>, Option<f64>) {
-        let mut lat = None;
-        let mut lon = None;
-        if let Some((latitdue, longitude)) = self.station.location {
-            lat = Some(latitdue);
-            lon = Some(longitude);
-        }
-
-        (lat, lon, self.station.elevation)
-    }
-
-    /// Set location information
-    #[inline]
-    #[deprecated]
-    pub fn set_location<T, U, V>(mut self, latitude: T, longitude: U, elevation: V) -> Self
-    where
-        Option<f64>: From<T> + From<U> + From<V>,
-    {
-        let lat = Option::from(latitude);
-        let lon = Option::from(longitude);
-
-        self.station.location = lat.and_then(|lat| lon.and_then(|lon| Some((lat, lon))));
-        self.station.elevation = Option::from(elevation);
-
-        self
-    }
-
-    /// Station number, USAF number, eg 727730
-    #[inline]
-    #[deprecated]
-    pub fn set_station_num<T>(mut self, station_num: T) -> Self
-    where
-        Option<i32>: From<T>,
-    {
-        self.station.num = Option::from(station_num);
-        self
-    }
-
-    /// Station number, USAF number, eg 727730
-    #[inline]
-    #[deprecated]
-    pub fn get_station_num(&self) -> Option<i32> {
-        self.station.station_num()
     }
 
     /// Difference in model initialization time and `valid_time` in hours.
@@ -535,29 +464,8 @@ impl Sounding {
             })
         });
 
-        result.direction = self.uwind
-            .and_then(|u| {
-                self.vwind.and_then(|v| {
-                    let mut direction = v.atan2(u).to_degrees();
-                    while direction > 360.0 {
-                        direction -= 360.0;
-                    }
-                    while direction < 0.0 {
-                        direction += 360.0;
-                    }
-                    Some(direction)
-                })
-            })
-            .or(self.wind_dir);
-
-        result.speed = self.uwind
-            .and_then(|u| {
-                self.vwind.and_then(|v| {
-                    Some(u.hypot(v) * 1.94384) // multiply by factor for conversiont from mps to knots
-                })
-            })
-            .or(self.wind_spd);
-
+        result.direction = self.wind_dir;
+        result.speed = self.wind_spd;
         result.omega = Some(0.0);
         result.height = self.station.elevation;
 
