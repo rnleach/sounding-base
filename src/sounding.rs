@@ -170,7 +170,7 @@ impl StationInfo {
     }
 }
 
-/// A copy of a row of the sounding data.
+/// A view of a row of the sounding data.
 #[derive(Clone, Default, Copy, Debug, PartialEq)]
 pub struct DataRow {
     /// Pressure in hPa
@@ -194,61 +194,6 @@ pub struct DataRow {
     /// Cloud fraction in percent
     pub cloud_fraction: Option<f64>,
 }
-
-/// A view into a data row of a sounding.
-#[derive(Debug)]
-pub struct RowView<'a> {
-    idx: isize,
-    src: &'a Sounding,
-}
-
-impl<'a> RowView<'a> {
-    /// Get a value from the row view.
-    pub fn get_value(&self, param: Profile) -> Option<f64> {
-        use Profile::*;
-
-        if self.idx >= 0 {
-            let profile = self.src.get_profile(param);
-            let idx = self.idx as usize;
-            profile[idx]
-        } else if self.idx == -1 {
-            let sfc_data = self.src.surface_as_data_row();
-            match param {
-                Pressure => sfc_data.pressure,
-                Temperature => sfc_data.temperature,
-                WetBulb => sfc_data.wet_bulb,
-                DewPoint => sfc_data.dew_point,
-                ThetaE => sfc_data.temperature,
-                WindDirection => sfc_data.direction,
-                WindSpeed => sfc_data.speed,
-                PressureVerticalVelocity => sfc_data.omega,
-                GeopotentialHeight => sfc_data.height,
-                CloudFraction => sfc_data.cloud_fraction,
-            }
-        } else {
-            None
-        }
-    }
-
-    /// Get a data row that matches this view
-    pub fn into_data_row(&self) -> Option<DataRow> {
-        if self.idx > 0 {
-            self.src.get_data_row(self.idx as usize)
-        } else if self.idx == -1 {
-            Some(self.src.surface_as_data_row())
-        } else {
-            None
-        }
-    }
-}
-
-impl<'a> PartialEq for RowView<'a> {
-    fn eq(&self, other: &Self) -> bool {
-        self.src as *const _ == other.src as *const _ && self.idx == other.idx
-    }
-}
-
-impl<'a> Eq for RowView<'a> {}
 
 /// All the variables stored in the sounding.
 ///
@@ -447,7 +392,8 @@ impl Sounding {
     #[inline]
     pub fn bottom_up(&self) -> ProfileIterator {
         ProfileIterator {
-            next_idx: -1,
+            next_value: Some(self.surface_as_data_row()),
+            next_idx: 0,
             direction: 1,
             src: self,
         }
@@ -457,7 +403,8 @@ impl Sounding {
     #[inline]
     pub fn top_down(&self) -> ProfileIterator {
         ProfileIterator {
-            next_idx: (self.pressure.len() - 1) as isize,
+            next_value: self.get_data_row(self.pressure.len() - 1),
+            next_idx: (self.pressure.len() - 2) as isize,
             direction: -1,
             src: self,
         }
@@ -557,25 +504,27 @@ impl Sounding {
 /// Iterator over the data rows of a sounding. This may be a top down or bottom up iterator where
 /// either the last or first row returned is the surface data.
 pub struct ProfileIterator<'a> {
+    next_value: Option<DataRow>,
     next_idx: isize,
     direction: isize, // +1 for bottom up, -1 for top down
     src: &'a Sounding,
 }
 
 impl<'a> Iterator for ProfileIterator<'a> {
-    type Item = RowView<'a>;
+    type Item = DataRow;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        if self.next_idx < -1 || self.next_idx >= self.src.pressure.len() as isize {
-            None
+        let result = self.next_value;
+        self.next_value = if self.next_idx >= 0 {
+            self.src.get_data_row(self.next_idx as usize)
+        } else if self.next_idx == -1 {
+            Some(self.src.surface_as_data_row())
         } else {
-            let result = RowView {
-                idx: self.next_idx,
-                src: self.src,
-            };
-            self.next_idx += self.direction;
-            Some(result)
-        }
+            None
+        };
+
+        self.next_idx += self.direction;
+        result
     }
 }
