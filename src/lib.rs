@@ -56,42 +56,42 @@ fn main() {
     let mut iter = snd.top_down();
 
     let mut data_row = iter.next().unwrap();
-    assert!(data_row.pressure == Some(100.0));
-    assert!(data_row.temperature == Some(-56.5));
+    assert!(data_row.get_value(Profile::Pressure) == Some(100.0));
+    assert!(data_row.get_value(Profile::Temperature) == Some(-56.5));
 
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == Some(250.0));
-    assert!(data_row.temperature == Some(-52.0));
+    assert!(data_row.get_value(Profile::Pressure) == Some(250.0));
+    assert!(data_row.get_value(Profile::Temperature) == Some(-52.0));
 
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == Some(300.0));
-    assert!(data_row.temperature == Some(-44.0));
+    assert!(data_row.get_value(Profile::Pressure) == Some(300.0));
+    assert!(data_row.get_value(Profile::Temperature) == Some(-44.0));
 
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == Some(500.0));
-    assert!(data_row.temperature == Some(-20.6));
+    assert!(data_row.get_value(Profile::Pressure) == Some(500.0));
+    assert!(data_row.get_value(Profile::Temperature) == Some(-20.6));
 
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == Some(700.0));
-    assert!(data_row.temperature == Some(-4.5));
+    assert!(data_row.get_value(Profile::Pressure) == Some(700.0));
+    assert!(data_row.get_value(Profile::Temperature) == Some(-4.5));
 
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == Some(850.0));
-    assert!(data_row.temperature == Some(5.0));
+    assert!(data_row.get_value(Profile::Pressure) == Some(850.0));
+    assert!(data_row.get_value(Profile::Temperature) == Some(5.0));
 
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == Some(925.0));
-    assert!(data_row.temperature == Some(7.0));
+    assert!(data_row.get_value(Profile::Pressure) == Some(925.0));
+    assert!(data_row.get_value(Profile::Temperature) == Some(7.0));
 
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == Some(1000.0));
-    assert!(data_row.temperature == Some(13.0));
+    assert!(data_row.get_value(Profile::Pressure) == Some(1000.0));
+    assert!(data_row.get_value(Profile::Temperature) == Some(13.0));
 
 
     // THIS ONE IS THE SURFACE DATA!
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == Some(1013.25));
-    assert!(data_row.temperature == Some(15.0));
+    assert!(data_row.get_value(Profile::Pressure) == Some(1013.25));
+    assert!(data_row.get_value(Profile::Temperature) == Some(15.0));
 
     assert!(iter.next() == None);
 
@@ -109,7 +109,7 @@ humidity are often missing (if not totally inaccurate).
 // API
 //
 
-pub use sounding::{DataRow, Profile, Sounding, StationInfo, Surface};
+pub use sounding::{DataRow, Profile, RowView, Sounding, StationInfo, Surface};
 
 //
 // Internal use only
