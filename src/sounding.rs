@@ -170,7 +170,7 @@ impl StationInfo {
     }
 }
 
-/// A view of a row of the sounding data.
+/// A copy of a row of the sounding data.
 #[derive(Clone, Default, Copy, Debug, PartialEq)]
 pub struct DataRow {
     /// Pressure in hPa
@@ -278,8 +278,34 @@ impl Sounding {
 
     /// Set a profile variable
     #[inline]
-    pub fn set_profile(mut self, var: Profile, values: Vec<Option<f64>>) -> Self {
+    pub fn set_profile(mut self, var: Profile, mut values: Vec<Option<f64>>) -> Self {
         use self::Profile::*;
+
+        let sfc_val = match var {
+            Pressure => self.station_pres,
+            Temperature => self.sfc_temperature,
+            WetBulb => self.station_pres.and_then(|p| {
+                self.sfc_temperature.and_then(|t| {
+                    self.sfc_dew_point
+                        .and_then(|dp| ::metfor::wet_bulb_c(t, dp, p).ok())
+                })
+            }),
+            DewPoint => self.sfc_dew_point,
+            ThetaE => self.station_pres.and_then(|p| {
+                self.sfc_temperature.and_then(|t| {
+                    self.sfc_dew_point
+                        .and_then(|dp| ::metfor::theta_e_kelvin(t, dp, p).ok())
+                })
+            }),
+            WindDirection => self.wind_dir,
+            WindSpeed => self.wind_spd,
+            PressureVerticalVelocity => Some(0.0),
+            GeopotentialHeight => self.station.elevation,
+            CloudFraction => None,
+        };
+
+        values.insert(0, sfc_val);
+
         match var {
             Pressure => self.pressure = values,
             Temperature => self.temperature = values,
@@ -291,7 +317,7 @@ impl Sounding {
             PressureVerticalVelocity => self.omega = values,
             GeopotentialHeight => self.height = values,
             CloudFraction => self.cloud_fraction = values,
-        };
+        }
 
         self
     }
@@ -320,19 +346,57 @@ impl Sounding {
     where
         Option<f64>: From<T>,
     {
+        let value = Option::from(value);
+
         use self::Surface::*;
         match var {
-            MSLP => self.mslp = Option::from(value),
-            StationPressure => self.station_pres = Option::from(value),
-            LowCloud => self.low_cloud = Option::from(value),
-            MidCloud => self.mid_cloud = Option::from(value),
-            HighCloud => self.hi_cloud = Option::from(value),
-            WindDirection => self.wind_dir = Option::from(value),
-            WindSpeed => self.wind_spd = Option::from(value),
-            Temperature => self.sfc_temperature = Option::from(value),
-            DewPoint => self.sfc_dew_point = Option::from(value),
-            Precipitation => self.precip = Option::from(value),
+            MSLP => self.mslp = value,
+            StationPressure => self.station_pres = value,
+            LowCloud => self.low_cloud = value,
+            MidCloud => self.mid_cloud = value,
+            HighCloud => self.hi_cloud = value,
+            WindDirection => self.wind_dir = value,
+            WindSpeed => self.wind_spd = value,
+            Temperature => self.sfc_temperature = value,
+            DewPoint => self.sfc_dew_point = value,
+            Precipitation => self.precip = value,
         };
+
+        // Set the first element of some of the profiles if necessary.
+        {
+            if let Some(profile) = match var {
+                StationPressure => Some(&mut self.pressure),
+                Temperature => Some(&mut self.temperature),
+                DewPoint => Some(&mut self.dew_point),
+                WindDirection => Some(&mut self.direction),
+                WindSpeed => Some(&mut self.speed),
+                _ => None,
+            } {
+                if profile.len() > 0 {
+                    profile[0] = value;
+                }
+            }
+
+            if var == StationPressure || var == Temperature || var == DewPoint {
+                if !self.wet_bulb.is_empty() {
+                    self.wet_bulb[0] = self.station_pres.and_then(|p| {
+                        self.sfc_temperature.and_then(|t| {
+                            self.sfc_dew_point
+                                .and_then(|dp| ::metfor::wet_bulb_c(t, dp, p).ok())
+                        })
+                    });
+                }
+
+                if !self.theta_e.is_empty() {
+                    self.theta_e[0] = self.station_pres.and_then(|p| {
+                        self.sfc_temperature.and_then(|t| {
+                            self.sfc_dew_point
+                                .and_then(|dp| ::metfor::theta_e_kelvin(t, dp, p).ok())
+                        })
+                    });
+                }
+            }
+        }
 
         self
     }
@@ -392,7 +456,6 @@ impl Sounding {
     #[inline]
     pub fn bottom_up(&self) -> ProfileIterator {
         ProfileIterator {
-            next_value: Some(self.surface_as_data_row()),
             next_idx: 0,
             direction: 1,
             src: self,
@@ -403,8 +466,7 @@ impl Sounding {
     #[inline]
     pub fn top_down(&self) -> ProfileIterator {
         ProfileIterator {
-            next_value: self.get_data_row(self.pressure.len() - 1),
-            next_idx: (self.pressure.len() - 2) as isize,
+            next_idx: (self.pressure.len() - 1) as isize,
             direction: -1,
             src: self,
         }
@@ -504,7 +566,6 @@ impl Sounding {
 /// Iterator over the data rows of a sounding. This may be a top down or bottom up iterator where
 /// either the last or first row returned is the surface data.
 pub struct ProfileIterator<'a> {
-    next_value: Option<DataRow>,
     next_idx: isize,
     direction: isize, // +1 for bottom up, -1 for top down
     src: &'a Sounding,
@@ -515,15 +576,7 @@ impl<'a> Iterator for ProfileIterator<'a> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        let result = self.next_value;
-        self.next_value = if self.next_idx >= 0 {
-            self.src.get_data_row(self.next_idx as usize)
-        } else if self.next_idx == -1 {
-            Some(self.src.surface_as_data_row())
-        } else {
-            None
-        };
-
+        let result = self.src.get_data_row(self.next_idx as usize);
         self.next_idx += self.direction;
         result
     }
