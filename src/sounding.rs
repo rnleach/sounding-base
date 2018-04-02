@@ -61,12 +61,6 @@ pub enum Surface {
     MidCloud,
     /// Hi cloud fraction
     HighCloud,
-    #[deprecated]
-    /// U - wind speed (m/s) (West -> East is positive)
-    UWind,
-    #[deprecated]
-    /// V - wind speed (m/s) (South -> North is positive)
-    VWind,
     /// Wind Direction in degrees. This is the direction the wind is coming from.
     WindDirection,
     /// Wind speed in knots.
@@ -80,7 +74,6 @@ pub enum Surface {
 }
 
 impl fmt::Display for Surface {
-    #[allow(deprecated)] // FIXME: Remove once deprecated variants are removed.
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         use Surface::*;
         let string_rep = match *self {
@@ -89,8 +82,6 @@ impl fmt::Display for Surface {
             LowCloud => "low cloud fraction",
             MidCloud => "mid cloud fraction",
             HighCloud => "high cloud fraction",
-            UWind => "west to east wind",
-            VWind => "south to north wind",
             WindDirection => "wind direction",
             WindSpeed => "wind speed",
             Temperature => "2-meter temperature",
@@ -179,7 +170,7 @@ impl StationInfo {
     }
 }
 
-/// A view of a row of the sounding data.
+/// A copy of a row of the sounding data.
 #[derive(Clone, Default, Copy, Debug, PartialEq)]
 pub struct DataRow {
     /// Pressure in hPa
@@ -253,11 +244,6 @@ pub struct Sounding {
     mid_cloud: Option<f64>,
     /// Hi cloud fraction
     hi_cloud: Option<f64>,
-    // FIXME: remove uwind and vwind due to deprecation.
-    /// U - wind speed (m/s) (West -> East is positive)
-    uwind: Option<f64>,
-    /// V - wind speed (m/s) (South -> North is positive)
-    vwind: Option<f64>,
     /// Wind direction
     wind_dir: Option<f64>,
     /// Wind speed in knots
@@ -292,8 +278,36 @@ impl Sounding {
 
     /// Set a profile variable
     #[inline]
-    pub fn set_profile(mut self, var: Profile, values: Vec<Option<f64>>) -> Self {
+    pub fn set_profile(mut self, var: Profile, mut values: Vec<Option<f64>>) -> Self {
         use self::Profile::*;
+
+        let sfc_val = match var {
+            Pressure => self.station_pres,
+            Temperature => self.sfc_temperature,
+            WetBulb => self.station_pres.and_then(|p| {
+                self.sfc_temperature.and_then(|t| {
+                    self.sfc_dew_point
+                        .and_then(|dp| ::metfor::wet_bulb_c(t, dp, p).ok())
+                })
+            }),
+            DewPoint => self.sfc_dew_point,
+            ThetaE => self.station_pres.and_then(|p| {
+                self.sfc_temperature.and_then(|t| {
+                    self.sfc_dew_point
+                        .and_then(|dp| ::metfor::theta_e_kelvin(t, dp, p).ok())
+                })
+            }),
+            WindDirection => self.wind_dir,
+            WindSpeed => self.wind_spd,
+            PressureVerticalVelocity => Some(0.0),
+            GeopotentialHeight => self.station.elevation,
+            CloudFraction => None,
+        };
+
+        if !values.is_empty() {
+            values.insert(0, sfc_val);
+        }
+
         match var {
             Pressure => self.pressure = values,
             Temperature => self.temperature = values,
@@ -305,7 +319,7 @@ impl Sounding {
             PressureVerticalVelocity => self.omega = values,
             GeopotentialHeight => self.height = values,
             CloudFraction => self.cloud_fraction = values,
-        };
+        }
 
         self
     }
@@ -329,33 +343,67 @@ impl Sounding {
     }
 
     /// Set a surface variable
-    #[allow(deprecated)] // FIXME: Remove once deprecated variants are removed.
     #[inline]
     pub fn set_surface_value<T>(mut self, var: Surface, value: T) -> Self
     where
         Option<f64>: From<T>,
     {
+        let value = Option::from(value);
+
         use self::Surface::*;
         match var {
-            MSLP => self.mslp = Option::from(value),
-            StationPressure => self.station_pres = Option::from(value),
-            LowCloud => self.low_cloud = Option::from(value),
-            MidCloud => self.mid_cloud = Option::from(value),
-            HighCloud => self.hi_cloud = Option::from(value),
-            UWind => self.uwind = Option::from(value),
-            VWind => self.vwind = Option::from(value),
-            WindDirection => self.wind_dir = Option::from(value),
-            WindSpeed => self.wind_spd = Option::from(value),
-            Temperature => self.sfc_temperature = Option::from(value),
-            DewPoint => self.sfc_dew_point = Option::from(value),
-            Precipitation => self.precip = Option::from(value),
+            MSLP => self.mslp = value,
+            StationPressure => self.station_pres = value,
+            LowCloud => self.low_cloud = value,
+            MidCloud => self.mid_cloud = value,
+            HighCloud => self.hi_cloud = value,
+            WindDirection => self.wind_dir = value,
+            WindSpeed => self.wind_spd = value,
+            Temperature => self.sfc_temperature = value,
+            DewPoint => self.sfc_dew_point = value,
+            Precipitation => self.precip = value,
         };
+
+        // Set the first element of some of the profiles if necessary.
+        {
+            if let Some(profile) = match var {
+                StationPressure => Some(&mut self.pressure),
+                Temperature => Some(&mut self.temperature),
+                DewPoint => Some(&mut self.dew_point),
+                WindDirection => Some(&mut self.direction),
+                WindSpeed => Some(&mut self.speed),
+                _ => None,
+            } {
+                if profile.len() > 0 {
+                    profile[0] = value;
+                }
+            }
+
+            if var == StationPressure || var == Temperature || var == DewPoint {
+                if !self.wet_bulb.is_empty() {
+                    self.wet_bulb[0] = self.station_pres.and_then(|p| {
+                        self.sfc_temperature.and_then(|t| {
+                            self.sfc_dew_point
+                                .and_then(|dp| ::metfor::wet_bulb_c(t, dp, p).ok())
+                        })
+                    });
+                }
+
+                if !self.theta_e.is_empty() {
+                    self.theta_e[0] = self.station_pres.and_then(|p| {
+                        self.sfc_temperature.and_then(|t| {
+                            self.sfc_dew_point
+                                .and_then(|dp| ::metfor::theta_e_kelvin(t, dp, p).ok())
+                        })
+                    });
+                }
+            }
+        }
 
         self
     }
 
     /// Get a surface variable
-    #[allow(deprecated)] // FIXME: Remove once deprecated variants are removed.
     #[inline]
     pub fn get_surface_value(&self, var: Surface) -> Option<f64> {
         use self::Surface::*;
@@ -365,65 +413,12 @@ impl Sounding {
             LowCloud => self.low_cloud,
             MidCloud => self.mid_cloud,
             HighCloud => self.hi_cloud,
-            UWind => self.uwind,
-            VWind => self.vwind,
             WindDirection => self.wind_dir,
             WindSpeed => self.wind_spd,
             Temperature => self.sfc_temperature,
             DewPoint => self.sfc_dew_point,
             Precipitation => self.precip.map(|pp| pp * 25.4), // convert from mm to inches.
         }
-    }
-
-    /// Get location information.
-    ///
-    /// # returns
-    /// `(latitude, longitude, elevation in meters)`
-    #[inline]
-    #[deprecated]
-    pub fn get_location(&self) -> (Option<f64>, Option<f64>, Option<f64>) {
-        let mut lat = None;
-        let mut lon = None;
-        if let Some((latitdue, longitude)) = self.station.location {
-            lat = Some(latitdue);
-            lon = Some(longitude);
-        }
-
-        (lat, lon, self.station.elevation)
-    }
-
-    /// Set location information
-    #[inline]
-    #[deprecated]
-    pub fn set_location<T, U, V>(mut self, latitude: T, longitude: U, elevation: V) -> Self
-    where
-        Option<f64>: From<T> + From<U> + From<V>,
-    {
-        let lat = Option::from(latitude);
-        let lon = Option::from(longitude);
-
-        self.station.location = lat.and_then(|lat| lon.and_then(|lon| Some((lat, lon))));
-        self.station.elevation = Option::from(elevation);
-
-        self
-    }
-
-    /// Station number, USAF number, eg 727730
-    #[inline]
-    #[deprecated]
-    pub fn set_station_num<T>(mut self, station_num: T) -> Self
-    where
-        Option<i32>: From<T>,
-    {
-        self.station.num = Option::from(station_num);
-        self
-    }
-
-    /// Station number, USAF number, eg 727730
-    #[inline]
-    #[deprecated]
-    pub fn get_station_num(&self) -> Option<i32> {
-        self.station.station_num()
     }
 
     /// Difference in model initialization time and `valid_time` in hours.
@@ -463,7 +458,6 @@ impl Sounding {
     #[inline]
     pub fn bottom_up(&self) -> ProfileIterator {
         ProfileIterator {
-            next_value: Some(self.surface_as_data_row()),
             next_idx: 0,
             direction: 1,
             src: self,
@@ -474,8 +468,7 @@ impl Sounding {
     #[inline]
     pub fn top_down(&self) -> ProfileIterator {
         ProfileIterator {
-            next_value: self.get_data_row(self.pressure.len() - 1),
-            next_idx: (self.pressure.len() - 2) as isize,
+            next_idx: (self.pressure.len() - 1) as isize,
             direction: -1,
             src: self,
         }
@@ -535,29 +528,8 @@ impl Sounding {
             })
         });
 
-        result.direction = self.uwind
-            .and_then(|u| {
-                self.vwind.and_then(|v| {
-                    let mut direction = v.atan2(u).to_degrees();
-                    while direction > 360.0 {
-                        direction -= 360.0;
-                    }
-                    while direction < 0.0 {
-                        direction += 360.0;
-                    }
-                    Some(direction)
-                })
-            })
-            .or(self.wind_dir);
-
-        result.speed = self.uwind
-            .and_then(|u| {
-                self.vwind.and_then(|v| {
-                    Some(u.hypot(v) * 1.94384) // multiply by factor for conversiont from mps to knots
-                })
-            })
-            .or(self.wind_spd);
-
+        result.direction = self.wind_dir;
+        result.speed = self.wind_spd;
         result.omega = Some(0.0);
         result.height = self.station.elevation;
 
@@ -596,7 +568,6 @@ impl Sounding {
 /// Iterator over the data rows of a sounding. This may be a top down or bottom up iterator where
 /// either the last or first row returned is the surface data.
 pub struct ProfileIterator<'a> {
-    next_value: Option<DataRow>,
     next_idx: isize,
     direction: isize, // +1 for bottom up, -1 for top down
     src: &'a Sounding,
@@ -607,15 +578,7 @@ impl<'a> Iterator for ProfileIterator<'a> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        let result = self.next_value;
-        self.next_value = if self.next_idx >= 0 {
-            self.src.get_data_row(self.next_idx as usize)
-        } else if self.next_idx == -1 {
-            Some(self.src.surface_as_data_row())
-        } else {
-            None
-        };
-
+        let result = self.src.get_data_row(self.next_idx as usize);
         self.next_idx += self.direction;
         result
     }
