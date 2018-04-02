@@ -304,7 +304,9 @@ impl Sounding {
             CloudFraction => None,
         };
 
-        values.insert(0, sfc_val);
+        if !values.is_empty() {
+            values.insert(0, sfc_val);
+        }
 
         match var {
             Pressure => self.pressure = values,

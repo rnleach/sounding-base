@@ -1,6 +1,6 @@
 [package]
 name = "sounding-base"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["Ryan Leach <clumsycodemonkey@gmail.com>"]
 description = """Data formats and algorithms for atmospheric soundings. The base crate is meant to
               be a common base for other crates to build on. These crates may be for managing a 
