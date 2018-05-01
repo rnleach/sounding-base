@@ -201,7 +201,7 @@ pub struct DataRow {
 /// variable, e.g. cloud fraction, that whole vector has length 0 instead of being full of missing
 /// values.
 ///
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Sounding {
     /// Station info
     station: StationInfo,
