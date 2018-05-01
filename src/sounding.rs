@@ -589,21 +589,28 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_profile(){
+    fn test_profile() {
         let snd = Sounding::new();
 
         println!("snd = {:#?}", snd);
         let p = vec![Some(1000.0), Some(925.0), Some(850.0), Some(700.0)];
         let t = vec![Some(20.0), Some(18.0), Some(10.0), Some(2.0)];
 
-        let snd = snd
-            .set_profile(Profile::Pressure, p)
+        let snd = snd.set_profile(Profile::Pressure, p)
             .set_profile(Profile::Temperature, t)
             .set_surface_value(Surface::Temperature, 21.0)
             .set_surface_value(Surface::StationPressure, 1005.0);
 
         println!("snd = {:#?}", snd);
-        assert!(snd.get_profile(Profile::Pressure).iter().all(|p| p.is_some()));
-        assert!(snd.get_profile(Profile::Temperature).iter().all(|t| t.is_some()));
+        assert!(
+            snd.get_profile(Profile::Pressure)
+                .iter()
+                .all(|p| p.is_some())
+        );
+        assert!(
+            snd.get_profile(Profile::Temperature)
+                .iter()
+                .all(|t| t.is_some())
+        );
     }
 }
