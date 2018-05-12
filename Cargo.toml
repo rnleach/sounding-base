@@ -1,6 +1,6 @@
 [package]
 name = "sounding-base"
-version = "0.5.3"
+version = "0.6.0"
 authors = ["Ryan Leach <clumsycodemonkey@gmail.com>"]
 description = """Data formats and algorithms for atmospheric soundings. The base crate is meant to
               be a common base for other crates to build on. These crates may be for managing a 
@@ -14,6 +14,6 @@ keywords = ["weather","sounding","meteorology", "skew-t"]
 
 [dependencies]
 chrono="^0.4"
-smallvec="0.6.0"
-metfor="^0.2.0"
+smallvec="0.6"
+metfor="^0.2"
 

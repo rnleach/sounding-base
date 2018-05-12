@@ -108,8 +108,10 @@ humidity are often missing (if not totally inaccurate).
 //
 // API
 //
-
-pub use sounding::{DataRow, Profile, Sounding, StationInfo, Surface};
+pub use data_row::DataRow;
+pub use enums::{Profile, Surface};
+pub use sounding::Sounding;
+pub use station_info::StationInfo;
 
 //
 // Internal use only
@@ -120,4 +122,7 @@ extern crate smallvec;
 
 extern crate metfor;
 
+mod data_row;
+mod enums;
 mod sounding;
+mod station_info;

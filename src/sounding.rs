@@ -1,199 +1,10 @@
 //! Data type and methods to store an atmospheric sounding.
-use std::fmt;
 
 use chrono::NaiveDateTime;
 
-/// The names of the profiles which may be stored in a sounding.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Profile {
-    /// Pressure in hPa
-    Pressure,
-    /// Temperature in C
-    Temperature,
-    /// Wet bulb temperature in C
-    WetBulb,
-    /// Dew point in C
-    DewPoint,
-    /// Equivalent potential temperature in Kelvin
-    ThetaE,
-    /// Wind direction (from) in degrees.
-    WindDirection,
-    /// Wind speed in knots
-    WindSpeed,
-    /// Pressure vertical velocity in Pa/sec
-    PressureVerticalVelocity,
-    /// Geopotential Height in meters
-    GeopotentialHeight,
-    /// Cloud fraction in percent
-    CloudFraction,
-}
-
-impl fmt::Display for Profile {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        use Profile::*;
-        let string_rep = match *self {
-            Pressure => "pressure",
-            Temperature => "temperature",
-            WetBulb => "wet bulb temperature",
-            DewPoint => "dew point temperature",
-            ThetaE => "equivalent potential temperature",
-            WindDirection => "wind direction",
-            WindSpeed => "wind speed",
-            PressureVerticalVelocity => "vertical velocity",
-            GeopotentialHeight => "height",
-            CloudFraction => "cloud fraction",
-        };
-
-        write!(f, "{}", string_rep)
-    }
-}
-
-/// Surface based values.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Surface {
-    /// Surface pressure reduce to mean sea level (hPa)
-    MSLP,
-    /// Surface pressure (hPa)
-    StationPressure,
-    /// Low cloud fraction
-    LowCloud,
-    /// Mid cloud fraction
-    MidCloud,
-    /// Hi cloud fraction
-    HighCloud,
-    /// Wind Direction in degrees. This is the direction the wind is coming from.
-    WindDirection,
-    /// Wind speed in knots.
-    WindSpeed,
-    /// 2 meter temperatures (C)
-    Temperature,
-    /// 2 meter dew point (C)
-    DewPoint,
-    /// Precipitation (in)
-    Precipitation,
-}
-
-impl fmt::Display for Surface {
-    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        use Surface::*;
-        let string_rep = match *self {
-            MSLP => "sea level pressure",
-            StationPressure => "station pressure",
-            LowCloud => "low cloud fraction",
-            MidCloud => "mid cloud fraction",
-            HighCloud => "high cloud fraction",
-            WindDirection => "wind direction",
-            WindSpeed => "wind speed",
-            Temperature => "2-meter temperature",
-            DewPoint => "2-meter dew point",
-            Precipitation => "precipitation (liquid equivalent)",
-        };
-
-        write!(f, "{}", string_rep)
-    }
-}
-
-/// Station information including location data and identification number.
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
-pub struct StationInfo {
-    /// station number, USAF number, eg 727730
-    num: Option<i32>,
-    /// Latitude and longitude.
-    location: Option<(f64, f64)>,
-    /// Elevation in meters, this may be in model terrain, not necessarily the same as
-    /// the real world.
-    elevation: Option<f64>,
-}
-
-impl StationInfo {
-    /// Create a new `StationInfo` object.
-    pub fn new_with_values<T, U, V>(station_num: T, location: U, elevation: V) -> Self
-    where
-        T: Into<Option<i32>>,
-        U: Into<Option<(f64, f64)>>,
-        V: Into<Option<f64>>,
-    {
-        StationInfo {
-            num: station_num.into(),
-            location: location.into(),
-            elevation: elevation.into(),
-        }
-    }
-
-    /// Create a new object with default values.
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Builder method to add a station number.
-    pub fn with_station<T>(mut self, number: T) -> Self
-    where
-        Option<i32>: From<T>,
-    {
-        self.num = Option::from(number);
-
-        self
-    }
-
-    /// Builder method to add a location.
-    pub fn with_lat_lon<T>(mut self, coords: T) -> Self
-    where
-        Option<(f64, f64)>: From<T>,
-    {
-        self.location = Option::from(coords);
-        self
-    }
-
-    /// Builder method to add elevation.
-    pub fn with_elevation<T>(mut self, elev: T) -> Self
-    where
-        Option<f64>: From<T>,
-    {
-        self.elevation = Option::from(elev);
-        self
-    }
-
-    /// station number, USAF number, eg 727730
-    pub fn station_num(&self) -> Option<i32> {
-        self.num
-    }
-
-    /// Latitude and longitude.
-    pub fn location(&self) -> Option<(f64, f64)> {
-        self.location
-    }
-
-    /// Elevation in meters, this may be in model terrain, not necessarily the same as
-    /// the real world.
-    pub fn elevation(&self) -> Option<f64> {
-        self.elevation
-    }
-}
-
-/// A copy of a row of the sounding data.
-#[derive(Clone, Default, Copy, Debug, PartialEq)]
-pub struct DataRow {
-    /// Pressure in hPa
-    pub pressure: Option<f64>,
-    /// Temperature in C
-    pub temperature: Option<f64>,
-    /// Wet bulb temperature in C
-    pub wet_bulb: Option<f64>,
-    /// Dew point in C
-    pub dew_point: Option<f64>,
-    /// Equivalent potential temperature in Kelvin
-    pub theta_e: Option<f64>,
-    /// Wind direction (from) in degrees.
-    pub direction: Option<f64>,
-    /// Wind speed in knots
-    pub speed: Option<f64>,
-    /// Pressure vertical velocity in Pa/sec
-    pub omega: Option<f64>,
-    /// Geopotential Height in meters
-    pub height: Option<f64>,
-    /// Cloud fraction in percent
-    pub cloud_fraction: Option<f64>,
-}
+use data_row::DataRow;
+use enums::{Profile, Surface};
+use station_info::StationInfo;
 
 /// All the variables stored in the sounding.
 ///
@@ -300,7 +111,7 @@ impl Sounding {
             WindDirection => self.wind_dir,
             WindSpeed => self.wind_spd,
             PressureVerticalVelocity => Some(0.0),
-            GeopotentialHeight => self.station.elevation,
+            GeopotentialHeight => self.station.elevation(),
             CloudFraction => None,
         };
 
@@ -456,7 +267,7 @@ impl Sounding {
     /// Get a bottom up iterator over the data rows. The first value returned from the iterator is
     /// surface values.
     #[inline]
-    pub fn bottom_up<'a>(&'a self) -> impl Iterator<Item=DataRow> + 'a {
+    pub fn bottom_up<'a>(&'a self) -> impl Iterator<Item = DataRow> + 'a {
         ProfileIterator {
             next_idx: 0,
             direction: 1,
@@ -466,7 +277,7 @@ impl Sounding {
 
     /// Get a top down iterator over the data rows. The last value returned is the surface values.
     #[inline]
-    pub fn top_down<'a>(&'a self) -> impl Iterator<Item=DataRow> + 'a {
+    pub fn top_down<'a>(&'a self) -> impl Iterator<Item = DataRow> + 'a {
         ProfileIterator {
             next_idx: (self.pressure.len() - 1) as isize,
             direction: -1,
@@ -480,7 +291,7 @@ impl Sounding {
         macro_rules! copy_to_result {
             ($result:ident, $field:ident, $idx:ident) => {
                 match self.$field.get($idx) {
-                    None => {},
+                    None => {}
                     Some(opt_val) => $result.$field = *opt_val,
                 }
             };
@@ -531,7 +342,7 @@ impl Sounding {
         result.direction = self.wind_dir;
         result.speed = self.wind_spd;
         result.omega = Some(0.0);
-        result.height = self.station.elevation;
+        result.height = self.station.elevation();
 
         result
     }
