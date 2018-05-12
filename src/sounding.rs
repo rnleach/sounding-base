@@ -456,7 +456,7 @@ impl Sounding {
     /// Get a bottom up iterator over the data rows. The first value returned from the iterator is
     /// surface values.
     #[inline]
-    pub fn bottom_up(&self) -> ProfileIterator {
+    pub fn bottom_up<'a>(&'a self) -> impl Iterator<Item=DataRow> + 'a {
         ProfileIterator {
             next_idx: 0,
             direction: 1,
@@ -466,7 +466,7 @@ impl Sounding {
 
     /// Get a top down iterator over the data rows. The last value returned is the surface values.
     #[inline]
-    pub fn top_down(&self) -> ProfileIterator {
+    pub fn top_down<'a>(&'a self) -> impl Iterator<Item=DataRow> + 'a {
         ProfileIterator {
             next_idx: (self.pressure.len() - 1) as isize,
             direction: -1,
@@ -567,7 +567,7 @@ impl Sounding {
 
 /// Iterator over the data rows of a sounding. This may be a top down or bottom up iterator where
 /// either the last or first row returned is the surface data.
-pub struct ProfileIterator<'a> {
+struct ProfileIterator<'a> {
     next_idx: isize,
     direction: isize, // +1 for bottom up, -1 for top down
     src: &'a Sounding,
