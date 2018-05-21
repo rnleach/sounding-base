@@ -1,6 +1,7 @@
 //! Data type and methods to store an atmospheric sounding.
 
 use chrono::NaiveDateTime;
+use optional::Optioned;
 
 use data_row::DataRow;
 use enums::{Profile, Surface};
@@ -20,51 +21,51 @@ pub struct Sounding {
     /// Valid time of sounding
     valid_time: Option<NaiveDateTime>,
     /// Difference in model initialization time and `valid_time` in hours.
-    lead_time: Option<i32>,
+    lead_time: Optioned<i32>,
 
     // Upper air profile
     /// Pressure (hPa) profile
-    pressure: Vec<Option<f64>>,
+    pressure: Vec<Optioned<f64>>,
     /// Temperature (c) profile
-    temperature: Vec<Option<f64>>,
+    temperature: Vec<Optioned<f64>>,
     /// Wet-bulb (c) profile
-    wet_bulb: Vec<Option<f64>>,
+    wet_bulb: Vec<Optioned<f64>>,
     /// Dew Point (C) profile
-    dew_point: Vec<Option<f64>>,
+    dew_point: Vec<Optioned<f64>>,
     /// Equivalent Potential Temperature (K) profile
-    theta_e: Vec<Option<f64>>,
+    theta_e: Vec<Optioned<f64>>,
     /// Wind direction (degrees) profile
-    direction: Vec<Option<f64>>,
+    direction: Vec<Optioned<f64>>,
     /// Wind speed (knots) profile
-    speed: Vec<Option<f64>>,
+    speed: Vec<Optioned<f64>>,
     /// Vertical velocity (Pa/sec), pressure vertical coordinate
-    omega: Vec<Option<f64>>,
+    omega: Vec<Optioned<f64>>,
     /// Geopotential Height (m) profile
-    height: Vec<Option<f64>>,
+    height: Vec<Optioned<f64>>,
     /// Cloud coverage fraction in percent
-    cloud_fraction: Vec<Option<f64>>,
+    cloud_fraction: Vec<Optioned<f64>>,
 
     // Surface data
     /// Surface pressure reduce to mean sea level (hPa)
-    mslp: Option<f64>,
+    mslp: Optioned<f64>,
     /// Surface pressure (hPa)
-    station_pres: Option<f64>,
+    station_pres: Optioned<f64>,
     /// Low cloud fraction
-    low_cloud: Option<f64>,
+    low_cloud: Optioned<f64>,
     /// Mid cloud fraction
-    mid_cloud: Option<f64>,
+    mid_cloud: Optioned<f64>,
     /// Hi cloud fraction
-    hi_cloud: Option<f64>,
+    hi_cloud: Optioned<f64>,
     /// Wind direction
-    wind_dir: Option<f64>,
+    wind_dir: Optioned<f64>,
     /// Wind speed in knots
-    wind_spd: Option<f64>,
+    wind_spd: Optioned<f64>,
     /// 2 meter  temperature
-    sfc_temperature: Option<f64>,
+    sfc_temperature: Optioned<f64>,
     /// 2 meter dew point
-    sfc_dew_point: Option<f64>,
+    sfc_dew_point: Optioned<f64>,
     /// Precipitation in mm
-    precip: Option<f64>,
+    precip: Optioned<f64>,
 }
 
 impl Sounding {
@@ -89,7 +90,7 @@ impl Sounding {
 
     /// Set a profile variable
     #[inline]
-    pub fn set_profile(mut self, var: Profile, mut values: Vec<Option<f64>>) -> Self {
+    pub fn set_profile(mut self, var: Profile, mut values: Vec<Optioned<f64>>) -> Self {
         use self::Profile::*;
 
         let sfc_val = match var {

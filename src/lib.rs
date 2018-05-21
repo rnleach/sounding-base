@@ -1,5 +1,4 @@
 #![deny(missing_docs)]
-
 /*!
 
 Library to represent an atmospheric sounding with pressure as the vertical coordinate.
@@ -118,6 +117,7 @@ pub use station_info::StationInfo;
 //
 
 extern crate chrono;
+extern crate optional;
 extern crate smallvec;
 
 extern crate metfor;
