@@ -1,7 +1,7 @@
 //! Data type and methods to store an atmospheric sounding.
 
 use chrono::NaiveDateTime;
-use optional::Optioned;
+use optional::{Optioned, some, none, wrap};
 
 use data_row::DataRow;
 use enums::{Profile, Surface};
@@ -99,21 +99,21 @@ impl Sounding {
             WetBulb => self.station_pres.and_then(|p| {
                 self.sfc_temperature.and_then(|t| {
                     self.sfc_dew_point
-                        .and_then(|dp| ::metfor::wet_bulb_c(t, dp, p).ok())
+                        .and_then(|dp| Optioned::from(::metfor::wet_bulb_c(t, dp, p).ok()))
                 })
             }),
             DewPoint => self.sfc_dew_point,
             ThetaE => self.station_pres.and_then(|p| {
                 self.sfc_temperature.and_then(|t| {
                     self.sfc_dew_point
-                        .and_then(|dp| ::metfor::theta_e_kelvin(t, dp, p).ok())
+                        .and_then(|dp| Optioned::from(::metfor::theta_e_kelvin(t, dp, p).ok()))
                 })
             }),
             WindDirection => self.wind_dir,
             WindSpeed => self.wind_spd,
-            PressureVerticalVelocity => Some(0.0),
-            GeopotentialHeight => self.station.elevation(),
-            CloudFraction => None,
+            PressureVerticalVelocity => wrap(0.0),
+            GeopotentialHeight => Optioned::from(self.station.elevation()),
+            CloudFraction => none(),
         };
 
         if !values.is_empty() {
@@ -138,7 +138,7 @@ impl Sounding {
 
     /// Get a profile variable as a slice
     #[inline]
-    pub fn get_profile(&self, var: Profile) -> &[Option<f64>] {
+    pub fn get_profile(&self, var: Profile) -> &[Optioned<f64>] {
         use self::Profile::*;
         match var {
             Pressure => &self.pressure,
@@ -158,9 +158,9 @@ impl Sounding {
     #[inline]
     pub fn set_surface_value<T>(mut self, var: Surface, value: T) -> Self
     where
-        Option<f64>: From<T>,
+        Optioned<f64>: From<T>,
     {
-        let value = Option::from(value);
+        let value = Optioned::from(value);
 
         use self::Surface::*;
         match var {
@@ -196,7 +196,7 @@ impl Sounding {
                     self.wet_bulb[0] = self.station_pres.and_then(|p| {
                         self.sfc_temperature.and_then(|t| {
                             self.sfc_dew_point
-                                .and_then(|dp| ::metfor::wet_bulb_c(t, dp, p).ok())
+                                .and_then(|dp| ::metfor::wet_bulb_c(t, dp, p).ok().into())
                         })
                     });
                 }
@@ -205,7 +205,7 @@ impl Sounding {
                     self.theta_e[0] = self.station_pres.and_then(|p| {
                         self.sfc_temperature.and_then(|t| {
                             self.sfc_dew_point
-                                .and_then(|dp| ::metfor::theta_e_kelvin(t, dp, p).ok())
+                                .and_then(|dp| ::metfor::theta_e_kelvin(t, dp, p).ok().into())
                         })
                     });
                 }
@@ -217,7 +217,7 @@ impl Sounding {
 
     /// Get a surface variable
     #[inline]
-    pub fn get_surface_value(&self, var: Surface) -> Option<f64> {
+    pub fn get_surface_value(&self, var: Surface) -> Optioned<f64> {
         use self::Surface::*;
         match var {
             MSLP => self.mslp,
@@ -229,7 +229,7 @@ impl Sounding {
             WindSpeed => self.wind_spd,
             Temperature => self.sfc_temperature,
             DewPoint => self.sfc_dew_point,
-            Precipitation => self.precip.map(|pp| pp * 25.4), // convert from mm to inches.
+            Precipitation => self.precip.map_t(|pp| pp * 25.4), // convert from mm to inches.
         }
     }
 
@@ -237,15 +237,15 @@ impl Sounding {
     #[inline]
     pub fn set_lead_time<T>(mut self, lt: T) -> Self
     where
-        Option<i32>: From<T>,
+        Optioned<i32>: From<T>,
     {
-        self.lead_time = Option::from(lt);
+        self.lead_time = Optioned::from(lt);
         self
     }
 
     /// Difference in model initialization time and `valid_time` in hours.
     #[inline]
-    pub fn get_lead_time(&self) -> Option<i32> {
+    pub fn get_lead_time(&self) -> Optioned<i32> {
         self.lead_time
     }
 
@@ -329,21 +329,21 @@ impl Sounding {
         result.wet_bulb = self.station_pres.and_then(|p| {
             self.sfc_temperature.and_then(|t| {
                 self.sfc_dew_point
-                    .and_then(|dp| ::metfor::wet_bulb_c(t, dp, p).ok())
+                    .and_then(|dp| ::metfor::wet_bulb_c(t, dp, p).ok().into())
             })
         });
 
         result.theta_e = self.station_pres.and_then(|p| {
             self.sfc_temperature.and_then(|t| {
                 self.sfc_dew_point
-                    .and_then(|dp| ::metfor::theta_e_kelvin(t, dp, p).ok())
+                    .and_then(|dp| ::metfor::theta_e_kelvin(t, dp, p).ok().into())
             })
         });
 
         result.direction = self.wind_dir;
         result.speed = self.wind_spd;
-        result.omega = Some(0.0);
-        result.height = self.station.elevation();
+        result.omega = wrap(0.0);
+        result.height = self.station.elevation().map_or(none(),|elev| wrap(elev));
 
         result
     }
@@ -357,7 +357,7 @@ impl Sounding {
             .chain(self.pressure.iter())
             .enumerate()
         {
-            if let Some(p) = *p {
+            if let Some(p) = p.map_or(None, |p| Some(p)) {
                 let abs_diff = (target_p - p).abs();
                 if abs_diff < best_abs_diff {
                     best_abs_diff = abs_diff;
@@ -402,16 +402,17 @@ mod test {
 
     #[test]
     fn test_profile() {
+
         let snd = Sounding::new();
 
         println!("snd = {:#?}", snd);
-        let p = vec![Some(1000.0), Some(925.0), Some(850.0), Some(700.0)];
-        let t = vec![Some(20.0), Some(18.0), Some(10.0), Some(2.0)];
+        let p = vec![some(1000.0), some(925.0), some(850.0), some(700.0)];
+        let t = vec![some(20.0), some(18.0), some(10.0), some(2.0)];
 
         let snd = snd.set_profile(Profile::Pressure, p)
             .set_profile(Profile::Temperature, t)
-            .set_surface_value(Surface::Temperature, 21.0)
-            .set_surface_value(Surface::StationPressure, 1005.0);
+            .set_surface_value(Surface::Temperature, wrap(21.0))
+            .set_surface_value(Surface::StationPressure, wrap(1005.0));
 
         println!("snd = {:#?}", snd);
         assert!(

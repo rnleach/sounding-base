@@ -15,5 +15,8 @@ keywords = ["weather","sounding","meteorology", "skew-t"]
 [dependencies]
 chrono="^0.4"
 metfor="^0.2"
-optional="^0.4"
+optional="^0.4.1"
 smallvec="0.6"
+
+[patch.crates-io]
+optional={git="https://github.com/rnleach/optional.git",branch="and_then"}
