@@ -12,23 +12,26 @@ data to build on and use.
 ```
 extern crate chrono;
 extern crate sounding_base;
+extern crate optional;
+
+use optional::{Optioned, some};
 
 use sounding_base::{Sounding, StationInfo, Profile, Surface};
 
 fn main() {
 
     // Create  pressure profile
-    let pressure_profile: Vec<Option<f64>> = 
+    let pressure_profile: Vec<Optioned<f64>> = 
         vec![1000.0, 925.0, 850.0, 700.0, 500.0, 300.0, 250.0, 100.0]
             .iter()
-            .map(|p| Some(*p))
+            .map(|p| some(*p))
             .collect();
 
     // Create a temperature profile
-    let temperature_profile: Vec<Option<f64>> = 
+    let temperature_profile: Vec<Optioned<f64>> = 
         vec![13.0, 7.0, 5.0, -4.5, -20.6, -44.0, -52.0, -56.5]
             .iter()
-            .map(|t| Some(*t))
+            .map(|t| some(*t))
             .collect();
 
     // Create some station info
@@ -45,52 +48,51 @@ fn main() {
         .set_lead_time(24)  // Lead time in hours for forecast soundings.
         .set_profile(Profile::Pressure, pressure_profile)
         .set_profile(Profile::Temperature, temperature_profile)
-        // Surface values don't have to be `Option`
+        // Surface values don't have to be `Optioned`
         .set_surface_value(Surface::StationPressure, 1013.25)
         // But they can be
-        .set_surface_value(Surface::Temperature, Some(15.0)); 
+        .set_surface_value(Surface::Temperature, some(15.0)); 
 
     // Top down and bottom up iterators are provided. If surface data is available, it is 
     // inserted into the profile.
     let mut iter = snd.top_down();
 
     let mut data_row = iter.next().unwrap();
-    assert!(data_row.pressure == Some(100.0));
-    assert!(data_row.temperature == Some(-56.5));
+    assert!(data_row.pressure == some(100.0));
+    assert!(data_row.temperature == some(-56.5));
 
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == Some(250.0));
-    assert!(data_row.temperature == Some(-52.0));
+    assert!(data_row.pressure == some(250.0));
+    assert!(data_row.temperature == some(-52.0));
 
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == Some(300.0));
-    assert!(data_row.temperature == Some(-44.0));
+    assert!(data_row.pressure == some(300.0));
+    assert!(data_row.temperature == some(-44.0));
 
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == Some(500.0));
-    assert!(data_row.temperature == Some(-20.6));
+    assert!(data_row.pressure == some(500.0));
+    assert!(data_row.temperature == some(-20.6));
 
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == Some(700.0));
-    assert!(data_row.temperature == Some(-4.5));
+    assert!(data_row.pressure == some(700.0));
+    assert!(data_row.temperature == some(-4.5));
 
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == Some(850.0));
-    assert!(data_row.temperature == Some(5.0));
+    assert!(data_row.pressure == some(850.0));
+    assert!(data_row.temperature == some(5.0));
 
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == Some(925.0));
-    assert!(data_row.temperature == Some(7.0));
+    assert!(data_row.pressure == some(925.0));
+    assert!(data_row.temperature == some(7.0));
 
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == Some(1000.0));
-    assert!(data_row.temperature == Some(13.0));
-
+    assert!(data_row.pressure == some(1000.0));
+    assert!(data_row.temperature == some(13.0));
 
     // THIS ONE IS THE SURFACE DATA!
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == Some(1013.25));
-    assert!(data_row.temperature == Some(15.0));
+    assert!(data_row.pressure == some(1013.25));
+    assert!(data_row.temperature == some(15.0));
 
     assert!(iter.next() == None);
 

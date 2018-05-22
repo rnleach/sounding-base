@@ -1,7 +1,7 @@
 //! Data type and methods to store an atmospheric sounding.
 
 use chrono::NaiveDateTime;
-use optional::{Optioned, some, none, wrap};
+use optional::{Optioned, none, wrap};
 
 use data_row::DataRow;
 use enums::{Profile, Surface};
@@ -99,14 +99,14 @@ impl Sounding {
             WetBulb => self.station_pres.and_then(|p| {
                 self.sfc_temperature.and_then(|t| {
                     self.sfc_dew_point
-                        .and_then(|dp| Optioned::from(::metfor::wet_bulb_c(t, dp, p).ok()))
+                        .and_then(|dp| ::metfor::wet_bulb_c(t, dp, p).ok().into())
                 })
             }),
             DewPoint => self.sfc_dew_point,
             ThetaE => self.station_pres.and_then(|p| {
                 self.sfc_temperature.and_then(|t| {
                     self.sfc_dew_point
-                        .and_then(|dp| Optioned::from(::metfor::theta_e_kelvin(t, dp, p).ok()))
+                        .and_then(|dp| ::metfor::theta_e_kelvin(t, dp, p).ok().into())
                 })
             }),
             WindDirection => self.wind_dir,
@@ -402,6 +402,7 @@ mod test {
 
     #[test]
     fn test_profile() {
+        use optional::{some};
 
         let snd = Sounding::new();
 

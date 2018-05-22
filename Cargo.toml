@@ -19,4 +19,4 @@ optional="^0.4.1"
 smallvec="0.6"
 
 [patch.crates-io]
-optional={git="https://github.com/rnleach/optional.git",branch="and_then"}
+optional={git="https://github.com/rnleach/optional.git",branch="all_mods"}
