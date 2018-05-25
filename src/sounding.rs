@@ -412,8 +412,8 @@ mod test {
 
         let snd = snd.set_profile(Profile::Pressure, p)
             .set_profile(Profile::Temperature, t)
-            .set_surface_value(Surface::Temperature, wrap(21.0))
-            .set_surface_value(Surface::StationPressure, wrap(1005.0));
+            .set_surface_value(Surface::Temperature, 21.0)
+            .set_surface_value(Surface::StationPressure, 1005.0);
 
         println!("snd = {:#?}", snd);
         assert!(

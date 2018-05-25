@@ -2,7 +2,7 @@
 /*!
 
 Library to represent an atmospheric sounding with pressure as the vertical coordinate.
-The base crate is meant to be a common base  for other crates to build on. These crates may be for 
+The base crate is meant to be a common base for other crates to build on. These crates may be for 
 managing a data-store, displaying data, or saving and loading files.
 
 The emphasis of this crate is data representation and a common type for systems using sounding
@@ -58,51 +58,51 @@ fn main() {
     let mut iter = snd.top_down();
 
     let mut data_row = iter.next().unwrap();
-    assert!(data_row.pressure == some(100.0));
-    assert!(data_row.temperature == some(-56.5));
+    assert_eq!(data_row.pressure, some(100.0));
+    assert_eq!(data_row.temperature, some(-56.5));
 
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == some(250.0));
-    assert!(data_row.temperature == some(-52.0));
+    assert_eq!(data_row.pressure, some(250.0));
+    assert_eq!(data_row.temperature, some(-52.0));
 
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == some(300.0));
-    assert!(data_row.temperature == some(-44.0));
+    assert_eq!(data_row.pressure, some(300.0));
+    assert_eq!(data_row.temperature, some(-44.0));
 
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == some(500.0));
-    assert!(data_row.temperature == some(-20.6));
+    assert_eq!(data_row.pressure, some(500.0));
+    assert_eq!(data_row.temperature, some(-20.6));
 
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == some(700.0));
-    assert!(data_row.temperature == some(-4.5));
+    assert_eq!(data_row.pressure, some(700.0));
+    assert_eq!(data_row.temperature, some(-4.5));
 
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == some(850.0));
-    assert!(data_row.temperature == some(5.0));
+    assert_eq!(data_row.pressure, some(850.0));
+    assert_eq!(data_row.temperature, some(5.0));
 
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == some(925.0));
-    assert!(data_row.temperature == some(7.0));
+    assert_eq!(data_row.pressure, some(925.0));
+    assert_eq!(data_row.temperature, some(7.0));
 
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == some(1000.0));
-    assert!(data_row.temperature == some(13.0));
+    assert_eq!(data_row.pressure, some(1000.0));
+    assert_eq!(data_row.temperature, some(13.0));
 
     // THIS ONE IS THE SURFACE DATA!
     data_row = iter.next().unwrap();
-    assert!(data_row.pressure == some(1013.25));
-    assert!(data_row.temperature == some(15.0));
+    assert_eq!(data_row.pressure, some(1013.25));
+    assert_eq!(data_row.temperature, some(15.0));
 
-    assert!(iter.next() == None);
+    assert_eq!(iter.next(), None);
 
     // Profiles and surface values can also be accessed via getter methods. Read the docs!
 }
 ```
 
-You probably noticed a lot of `Option`s in the example. Basically, anything can be missing, and
-missing values are common in upper air soundings. For example, at high altitude the dew point or 
-humidity are often missing (if not totally inaccurate).
+You probably noticed a lot of `optional::Optioned`s in the example. Basically, anything can be 
+missing, and missing values are common in upper air soundings. For example, at high altitude the 
+dew point or humidity are often missing (if not totally inaccurate).
 
 */
 
