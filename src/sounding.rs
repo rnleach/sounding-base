@@ -1,6 +1,7 @@
 //! Data type and methods to store an atmospheric sounding.
 
 use chrono::NaiveDateTime;
+use optional::{Optioned, none, wrap};
 
 use data_row::DataRow;
 use enums::{Profile, Surface};
@@ -20,61 +21,83 @@ pub struct Sounding {
     /// Valid time of sounding
     valid_time: Option<NaiveDateTime>,
     /// Difference in model initialization time and `valid_time` in hours.
-    lead_time: Option<i32>,
+    lead_time: Optioned<i32>,
 
     // Upper air profile
     /// Pressure (hPa) profile
-    pressure: Vec<Option<f64>>,
+    pressure: Vec<Optioned<f64>>,
     /// Temperature (c) profile
-    temperature: Vec<Option<f64>>,
+    temperature: Vec<Optioned<f64>>,
     /// Wet-bulb (c) profile
-    wet_bulb: Vec<Option<f64>>,
+    wet_bulb: Vec<Optioned<f64>>,
     /// Dew Point (C) profile
-    dew_point: Vec<Option<f64>>,
+    dew_point: Vec<Optioned<f64>>,
     /// Equivalent Potential Temperature (K) profile
-    theta_e: Vec<Option<f64>>,
+    theta_e: Vec<Optioned<f64>>,
     /// Wind direction (degrees) profile
-    direction: Vec<Option<f64>>,
+    direction: Vec<Optioned<f64>>,
     /// Wind speed (knots) profile
-    speed: Vec<Option<f64>>,
+    speed: Vec<Optioned<f64>>,
     /// Vertical velocity (Pa/sec), pressure vertical coordinate
-    omega: Vec<Option<f64>>,
+    omega: Vec<Optioned<f64>>,
     /// Geopotential Height (m) profile
-    height: Vec<Option<f64>>,
+    height: Vec<Optioned<f64>>,
     /// Cloud coverage fraction in percent
-    cloud_fraction: Vec<Option<f64>>,
+    cloud_fraction: Vec<Optioned<f64>>,
 
     // Surface data
     /// Surface pressure reduce to mean sea level (hPa)
-    mslp: Option<f64>,
+    mslp: Optioned<f64>,
     /// Surface pressure (hPa)
-    station_pres: Option<f64>,
+    station_pres: Optioned<f64>,
     /// Low cloud fraction
-    low_cloud: Option<f64>,
+    low_cloud: Optioned<f64>,
     /// Mid cloud fraction
-    mid_cloud: Option<f64>,
+    mid_cloud: Optioned<f64>,
     /// Hi cloud fraction
-    hi_cloud: Option<f64>,
+    hi_cloud: Optioned<f64>,
     /// Wind direction
-    wind_dir: Option<f64>,
+    wind_dir: Optioned<f64>,
     /// Wind speed in knots
-    wind_spd: Option<f64>,
+    wind_spd: Optioned<f64>,
     /// 2 meter  temperature
-    sfc_temperature: Option<f64>,
+    sfc_temperature: Optioned<f64>,
     /// 2 meter dew point
-    sfc_dew_point: Option<f64>,
+    sfc_dew_point: Optioned<f64>,
     /// Precipitation in mm
-    precip: Option<f64>,
+    precip: Optioned<f64>,
 }
 
 impl Sounding {
     /// Create a new sounding with default values. This is a proxy for default with a clearer name.
+    /// 
+    /// # Examples
+    /// 
+    /// ```rust
+    /// use sounding_base::Sounding;
+    /// 
+    /// let snd = Sounding::new();
+    /// println!("{:?}", snd);
+    /// ```
     #[inline]
     pub fn new() -> Self {
         Sounding::default()
     }
 
     /// Set the station info.
+    /// 
+    /// # Examples
+    /// 
+    /// ```rust
+    /// use sounding_base::{Sounding, StationInfo};
+    /// 
+    /// let stn = StationInfo::new();
+    /// // set station values
+    /// 
+    /// let snd = Sounding::new()
+    ///     .set_station_info(stn);
+    /// 
+    /// ```
     #[inline]
     pub fn set_station_info(mut self, new_value: StationInfo) -> Self {
         self.station = new_value;
@@ -82,14 +105,47 @@ impl Sounding {
     }
 
     /// Get the station info
+    /// 
+    /// # Examples
+    /// 
+    /// ```rust
+    /// use sounding_base::{Sounding, StationInfo};
+    /// # use sounding_base::doctest::make_test_sounding;
+    /// 
+    /// let snd = make_test_sounding();
+    /// let stn: StationInfo = snd.get_station_info();
+    /// 
+    /// println!("{:?}", stn);
+    /// 
+    /// ```
     #[inline]
     pub fn get_station_info(&self) -> StationInfo {
         self.station
     }
 
     /// Set a profile variable
+    /// 
+    /// # Examples
+    /// 
+    /// ```rust
+    /// extern crate optional;
+    /// use optional::some;
+    /// 
+    /// # extern crate sounding_base;
+    /// # use sounding_base::{Sounding, Profile};
+    /// 
+    /// # fn main(){
+    /// let p = vec![some(1000.0), some(925.0), some(850.0), some(700.0)];
+    /// 
+    /// let snd = Sounding::new()
+    ///     .set_profile(Profile::Pressure, p);
+    /// 
+    /// println!("{:?}", snd);
+    /// # }
+    /// 
+    /// ```
     #[inline]
-    pub fn set_profile(mut self, var: Profile, mut values: Vec<Option<f64>>) -> Self {
+    pub fn set_profile(mut self, var: Profile, mut values: Vec<Optioned<f64>>) -> Self {
         use self::Profile::*;
 
         let sfc_val = match var {
@@ -98,21 +154,21 @@ impl Sounding {
             WetBulb => self.station_pres.and_then(|p| {
                 self.sfc_temperature.and_then(|t| {
                     self.sfc_dew_point
-                        .and_then(|dp| ::metfor::wet_bulb_c(t, dp, p).ok())
+                        .and_then(|dp| ::metfor::wet_bulb_c(t, dp, p).ok().into())
                 })
             }),
             DewPoint => self.sfc_dew_point,
             ThetaE => self.station_pres.and_then(|p| {
                 self.sfc_temperature.and_then(|t| {
                     self.sfc_dew_point
-                        .and_then(|dp| ::metfor::theta_e_kelvin(t, dp, p).ok())
+                        .and_then(|dp| ::metfor::theta_e_kelvin(t, dp, p).ok().into())
                 })
             }),
             WindDirection => self.wind_dir,
             WindSpeed => self.wind_spd,
-            PressureVerticalVelocity => Some(0.0),
-            GeopotentialHeight => self.station.elevation(),
-            CloudFraction => None,
+            PressureVerticalVelocity => wrap(0.0),
+            GeopotentialHeight => Optioned::from(self.station.elevation()),
+            CloudFraction => none(),
         };
 
         if !values.is_empty() {
@@ -136,8 +192,27 @@ impl Sounding {
     }
 
     /// Get a profile variable as a slice
+    /// 
+    /// # Examples
+    /// 
+    /// ```rust
+    /// use sounding_base::{Sounding, Profile};
+    /// # use sounding_base::doctest::make_test_sounding;
+    /// 
+    /// let snd = make_test_sounding();
+    /// let data = snd.get_profile(Profile::Pressure);
+    /// 
+    /// for p in data {
+    ///     if p.is_some() {
+    ///         println!("{:?}", p);
+    ///     } else {
+    ///         println!("missing value!");
+    ///     }
+    /// }
+    /// 
+    /// ```
     #[inline]
-    pub fn get_profile(&self, var: Profile) -> &[Option<f64>] {
+    pub fn get_profile(&self, var: Profile) -> &[Optioned<f64>] {
         use self::Profile::*;
         match var {
             Pressure => &self.pressure,
@@ -157,9 +232,9 @@ impl Sounding {
     #[inline]
     pub fn set_surface_value<T>(mut self, var: Surface, value: T) -> Self
     where
-        Option<f64>: From<T>,
+        Optioned<f64>: From<T>,
     {
-        let value = Option::from(value);
+        let value = Optioned::from(value);
 
         use self::Surface::*;
         match var {
@@ -195,7 +270,7 @@ impl Sounding {
                     self.wet_bulb[0] = self.station_pres.and_then(|p| {
                         self.sfc_temperature.and_then(|t| {
                             self.sfc_dew_point
-                                .and_then(|dp| ::metfor::wet_bulb_c(t, dp, p).ok())
+                                .and_then(|dp| ::metfor::wet_bulb_c(t, dp, p).ok().into())
                         })
                     });
                 }
@@ -204,7 +279,7 @@ impl Sounding {
                     self.theta_e[0] = self.station_pres.and_then(|p| {
                         self.sfc_temperature.and_then(|t| {
                             self.sfc_dew_point
-                                .and_then(|dp| ::metfor::theta_e_kelvin(t, dp, p).ok())
+                                .and_then(|dp| ::metfor::theta_e_kelvin(t, dp, p).ok().into())
                         })
                     });
                 }
@@ -216,7 +291,7 @@ impl Sounding {
 
     /// Get a surface variable
     #[inline]
-    pub fn get_surface_value(&self, var: Surface) -> Option<f64> {
+    pub fn get_surface_value(&self, var: Surface) -> Optioned<f64> {
         use self::Surface::*;
         match var {
             MSLP => self.mslp,
@@ -228,7 +303,7 @@ impl Sounding {
             WindSpeed => self.wind_spd,
             Temperature => self.sfc_temperature,
             DewPoint => self.sfc_dew_point,
-            Precipitation => self.precip.map(|pp| pp * 25.4), // convert from mm to inches.
+            Precipitation => self.precip.map_t(|pp| pp * 25.4), // convert from mm to inches.
         }
     }
 
@@ -236,15 +311,15 @@ impl Sounding {
     #[inline]
     pub fn set_lead_time<T>(mut self, lt: T) -> Self
     where
-        Option<i32>: From<T>,
+        Optioned<i32>: From<T>,
     {
-        self.lead_time = Option::from(lt);
+        self.lead_time = Optioned::from(lt);
         self
     }
 
     /// Difference in model initialization time and `valid_time` in hours.
     #[inline]
-    pub fn get_lead_time(&self) -> Option<i32> {
+    pub fn get_lead_time(&self) -> Optioned<i32> {
         self.lead_time
     }
 
@@ -328,21 +403,21 @@ impl Sounding {
         result.wet_bulb = self.station_pres.and_then(|p| {
             self.sfc_temperature.and_then(|t| {
                 self.sfc_dew_point
-                    .and_then(|dp| ::metfor::wet_bulb_c(t, dp, p).ok())
+                    .and_then(|dp| ::metfor::wet_bulb_c(t, dp, p).ok().into())
             })
         });
 
         result.theta_e = self.station_pres.and_then(|p| {
             self.sfc_temperature.and_then(|t| {
                 self.sfc_dew_point
-                    .and_then(|dp| ::metfor::theta_e_kelvin(t, dp, p).ok())
+                    .and_then(|dp| ::metfor::theta_e_kelvin(t, dp, p).ok().into())
             })
         });
 
         result.direction = self.wind_dir;
         result.speed = self.wind_spd;
-        result.omega = Some(0.0);
-        result.height = self.station.elevation();
+        result.omega = wrap(0.0);
+        result.height = self.station.elevation().map_or(none(),|elev| wrap(elev));
 
         result
     }
@@ -351,12 +426,9 @@ impl Sounding {
     pub fn fetch_nearest_pnt(&self, target_p: f64) -> DataRow {
         let mut idx: usize = 0;
         let mut best_abs_diff: f64 = ::std::f64::MAX;
-        let sfc_pressure = &self.get_surface_value(Surface::StationPressure);
-        for (i, p) in ::std::iter::once(sfc_pressure)
-            .chain(self.pressure.iter())
-            .enumerate()
+        for (i, p) in self.pressure.iter().enumerate()
         {
-            if let Some(p) = *p {
+            if let Some(p) = p.map_or(None, |p| Some(p)) {
                 let abs_diff = (target_p - p).abs();
                 if abs_diff < best_abs_diff {
                     best_abs_diff = abs_diff;
@@ -395,22 +467,32 @@ impl<'a> Iterator for ProfileIterator<'a> {
     }
 }
 
+// FIXME: only configure for test and doc tests, not possible as of 1.26
+#[doc(hidden)]
+pub mod doctest {
+    use super::*;
+
+    pub fn make_test_sounding() -> super::Sounding {
+        use optional::{some};
+
+        let p = vec![some(1000.0), some(925.0), some(850.0), some(700.0)];
+        let t = vec![some(20.0), some(18.0), some(10.0), some(2.0)];
+
+        Sounding::new().set_profile(Profile::Pressure, p)
+            .set_profile(Profile::Temperature, t)
+            .set_surface_value(Surface::Temperature, 21.0)
+            .set_surface_value(Surface::StationPressure, 1005.0)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
     fn test_profile() {
-        let snd = Sounding::new();
 
-        println!("snd = {:#?}", snd);
-        let p = vec![Some(1000.0), Some(925.0), Some(850.0), Some(700.0)];
-        let t = vec![Some(20.0), Some(18.0), Some(10.0), Some(2.0)];
-
-        let snd = snd.set_profile(Profile::Pressure, p)
-            .set_profile(Profile::Temperature, t)
-            .set_surface_value(Surface::Temperature, 21.0)
-            .set_surface_value(Surface::StationPressure, 1005.0);
+        let snd = doctest::make_test_sounding();
 
         println!("snd = {:#?}", snd);
         assert!(
