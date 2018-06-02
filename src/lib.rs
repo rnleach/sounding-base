@@ -128,3 +128,6 @@ mod data_row;
 mod enums;
 mod sounding;
 mod station_info;
+
+#[doc(hidden)]
+pub use sounding::doctest;

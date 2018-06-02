@@ -70,12 +70,34 @@ pub struct Sounding {
 
 impl Sounding {
     /// Create a new sounding with default values. This is a proxy for default with a clearer name.
+    /// 
+    /// # Examples
+    /// 
+    /// ```rust
+    /// use sounding_base::Sounding;
+    /// 
+    /// let snd = Sounding::new();
+    /// println!("{:?}", snd);
+    /// ```
     #[inline]
     pub fn new() -> Self {
         Sounding::default()
     }
 
     /// Set the station info.
+    /// 
+    /// # Examples
+    /// 
+    /// ```rust
+    /// use sounding_base::{Sounding, StationInfo};
+    /// 
+    /// let stn = StationInfo::new();
+    /// // set station values
+    /// 
+    /// let snd = Sounding::new()
+    ///     .set_station_info(stn);
+    /// 
+    /// ```
     #[inline]
     pub fn set_station_info(mut self, new_value: StationInfo) -> Self {
         self.station = new_value;
@@ -83,12 +105,45 @@ impl Sounding {
     }
 
     /// Get the station info
+    /// 
+    /// # Examples
+    /// 
+    /// ```rust
+    /// use sounding_base::{Sounding, StationInfo};
+    /// # use sounding_base::doctest::make_test_sounding;
+    /// 
+    /// let snd = make_test_sounding();
+    /// let stn: StationInfo = snd.get_station_info();
+    /// 
+    /// println!("{:?}", stn);
+    /// 
+    /// ```
     #[inline]
     pub fn get_station_info(&self) -> StationInfo {
         self.station
     }
 
     /// Set a profile variable
+    /// 
+    /// # Examples
+    /// 
+    /// ```rust
+    /// extern crate optional;
+    /// use optional::some;
+    /// 
+    /// # extern crate sounding_base;
+    /// # use sounding_base::{Sounding, Profile};
+    /// 
+    /// # fn main(){
+    /// let p = vec![some(1000.0), some(925.0), some(850.0), some(700.0)];
+    /// 
+    /// let snd = Sounding::new()
+    ///     .set_profile(Profile::Pressure, p);
+    /// 
+    /// println!("{:?}", snd);
+    /// # }
+    /// 
+    /// ```
     #[inline]
     pub fn set_profile(mut self, var: Profile, mut values: Vec<Optioned<f64>>) -> Self {
         use self::Profile::*;
@@ -137,6 +192,25 @@ impl Sounding {
     }
 
     /// Get a profile variable as a slice
+    /// 
+    /// # Examples
+    /// 
+    /// ```rust
+    /// use sounding_base::{Sounding, Profile};
+    /// # use sounding_base::doctest::make_test_sounding;
+    /// 
+    /// let snd = make_test_sounding();
+    /// let data = snd.get_profile(Profile::Pressure);
+    /// 
+    /// for p in data {
+    ///     if p.is_some() {
+    ///         println!("{:?}", p);
+    ///     } else {
+    ///         println!("missing value!");
+    ///     }
+    /// }
+    /// 
+    /// ```
     #[inline]
     pub fn get_profile(&self, var: Profile) -> &[Optioned<f64>] {
         use self::Profile::*;
@@ -352,10 +426,7 @@ impl Sounding {
     pub fn fetch_nearest_pnt(&self, target_p: f64) -> DataRow {
         let mut idx: usize = 0;
         let mut best_abs_diff: f64 = ::std::f64::MAX;
-        let sfc_pressure = &self.get_surface_value(Surface::StationPressure);
-        for (i, p) in ::std::iter::once(sfc_pressure)
-            .chain(self.pressure.iter())
-            .enumerate()
+        for (i, p) in self.pressure.iter().enumerate()
         {
             if let Some(p) = p.map_or(None, |p| Some(p)) {
                 let abs_diff = (target_p - p).abs();
@@ -396,24 +467,32 @@ impl<'a> Iterator for ProfileIterator<'a> {
     }
 }
 
+// FIXME: only configure for test and doc tests, not possible as of 1.26
+#[doc(hidden)]
+pub mod doctest {
+    use super::*;
+
+    pub fn make_test_sounding() -> super::Sounding {
+        use optional::{some};
+
+        let p = vec![some(1000.0), some(925.0), some(850.0), some(700.0)];
+        let t = vec![some(20.0), some(18.0), some(10.0), some(2.0)];
+
+        Sounding::new().set_profile(Profile::Pressure, p)
+            .set_profile(Profile::Temperature, t)
+            .set_surface_value(Surface::Temperature, 21.0)
+            .set_surface_value(Surface::StationPressure, 1005.0)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
     fn test_profile() {
-        use optional::{some};
 
-        let snd = Sounding::new();
-
-        println!("snd = {:#?}", snd);
-        let p = vec![some(1000.0), some(925.0), some(850.0), some(700.0)];
-        let t = vec![some(20.0), some(18.0), some(10.0), some(2.0)];
-
-        let snd = snd.set_profile(Profile::Pressure, p)
-            .set_profile(Profile::Temperature, t)
-            .set_surface_value(Surface::Temperature, 21.0)
-            .set_surface_value(Surface::StationPressure, 1005.0);
+        let snd = doctest::make_test_sounding();
 
         println!("snd = {:#?}", snd);
         assert!(
