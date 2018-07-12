@@ -14,25 +14,25 @@ pub struct StationInfo {
 
 impl StationInfo {
     /// Create a new `StationInfo` object.
-    /// 
+    ///
     /// # Arguments
     /// station_num: The USAF station identifier, or None.
-    /// 
+    ///
     /// location: The latitude and longitude as a tuple, or None.
-    /// 
+    ///
     /// elevation: The elevation of the station **in meters**.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```rust
     /// # extern crate optional;
     /// # extern crate sounding_base;
-    /// 
+    ///
     /// use sounding_base::StationInfo;
     /// use optional::{some, none};
-    /// 
+    ///
     /// let stn = StationInfo::new_with_values(12345, (45.2,-113.5), 2000.0);
-    /// 
+    ///
     /// // Note that lat-lon is an `Option` and not an `Optioned`
     /// let stn = StationInfo::new_with_values(some(12345), None, none());
     /// ```
@@ -51,20 +51,20 @@ impl StationInfo {
     }
 
     /// Create a new object with default values.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```rust
     /// # extern crate optional;
     /// # extern crate sounding_base;
-    /// 
+    ///
     /// use sounding_base::StationInfo;
     /// use optional::{some, none};
-    /// 
+    ///
     /// assert_eq!(StationInfo::new().station_num(), none());
     /// assert_eq!(StationInfo::new().location(), None);
     /// assert_eq!(StationInfo::new().elevation(), none());
-    /// 
+    ///
     /// ```
     #[inline]
     pub fn new() -> Self {
