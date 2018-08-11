@@ -1,4 +1,3 @@
-#![deny(missing_docs)]
 /*!
 
 Library to represent an atmospheric sounding with pressure as the vertical coordinate.
@@ -105,6 +104,7 @@ missing, and missing values are common in upper air soundings. For example, at h
 dew point or humidity are often missing (if not totally inaccurate).
 
 */
+#![deny(missing_docs)]
 
 //
 // API
