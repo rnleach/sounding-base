@@ -120,7 +120,6 @@ pub use station_info::StationInfo;
 
 extern crate chrono;
 extern crate optional;
-extern crate smallvec;
 
 extern crate metfor;
 

@@ -167,7 +167,7 @@ impl Sounding {
             WindDirection => self.wind_dir,
             WindSpeed => self.wind_spd,
             PressureVerticalVelocity => wrap(0.0),
-            GeopotentialHeight => Optioned::from(self.station.elevation()),
+            GeopotentialHeight => self.station.elevation(),
             CloudFraction => none(),
         };
 
@@ -260,7 +260,7 @@ impl Sounding {
                 WindSpeed => Some(&mut self.speed),
                 _ => None,
             } {
-                if profile.len() > 0 {
+                if !profile.is_empty() {
                     profile[0] = value;
                 }
             }
@@ -417,7 +417,7 @@ impl Sounding {
         result.direction = self.wind_dir;
         result.speed = self.wind_spd;
         result.omega = wrap(0.0);
-        result.height = self.station.elevation().map_or(none(), |elev| wrap(elev));
+        result.height = self.station.elevation();
 
         result
     }
@@ -427,7 +427,7 @@ impl Sounding {
         let mut idx: usize = 0;
         let mut best_abs_diff: f64 = ::std::f64::MAX;
         for (i, p) in self.pressure.iter().enumerate() {
-            if let Some(p) = p.map_or(None, |p| Some(p)) {
+            if let Some(p) = p.into_option() {
                 let abs_diff = (target_p - p).abs();
                 if abs_diff < best_abs_diff {
                     best_abs_diff = abs_diff;
