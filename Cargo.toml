@@ -15,4 +15,4 @@ keywords = ["weather","sounding","meteorology", "skew-t"]
 [dependencies]
 chrono="^0.4"
 metfor="^0.4"
-optional="^0.4.3"
+optional="^0.5.0"
