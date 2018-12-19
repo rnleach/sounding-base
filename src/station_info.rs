@@ -1,3 +1,4 @@
+use metfor::Meters;
 use optional::Optioned;
 
 /// Station information including location data and identification number.
@@ -7,9 +8,8 @@ pub struct StationInfo {
     num: Optioned<i32>,
     /// Latitude and longitude.
     location: Option<(f64, f64)>,
-    /// Elevation in meters, this may be in model terrain, not necessarily the same as
-    /// the real world.
-    elevation: Optioned<f64>,
+    /// Elevation, this may be in model terrain which is not necessarily the same as the real world.
+    elevation: Optioned<Meters>,
 }
 
 impl StationInfo {
@@ -25,28 +25,35 @@ impl StationInfo {
     /// # Examples
     ///
     /// ```rust
-    /// # extern crate optional;
-    /// # extern crate sounding_base;
-    ///
+    /// use metfor::{Meters, Feet};
     /// use sounding_base::StationInfo;
     /// use optional::{some, none};
     ///
-    /// let stn = StationInfo::new_with_values(12345, (45.2,-113.5), 2000.0);
+    /// let _stn = StationInfo::new_with_values(12345, (45.2,-113.5), Meters(2000.0));
+    /// let _stn = StationInfo::new_with_values(12345, (45.2,-113.5), Feet(2000.0));
+    /// let _stn = StationInfo::new_with_values(12345, (45.2,-113.5), some(Meters(2000.0)));
+    /// let _stn = StationInfo::new_with_values(12345, (45.2,-113.5), some(Feet(2000.0)));
     ///
     /// // Note that lat-lon is an `Option` and not an `Optioned`
-    /// let stn = StationInfo::new_with_values(some(12345), None, none());
+    /// let _stn = StationInfo::new_with_values(some(12345), None, none::<Feet>());
+    /// let _stn = StationInfo::new_with_values(some(12345), None, none::<Meters>());
     /// ```
     #[inline]
-    pub fn new_with_values<T, U, V>(station_num: T, location: U, elevation: V) -> Self
+    pub fn new_with_values<T, U, V, W>(station_num: T, location: U, elevation: V) -> Self
     where
         T: Into<Optioned<i32>>,
         U: Into<Option<(f64, f64)>>,
-        V: Into<Optioned<f64>>,
+        Optioned<W>: From<V>,
+        W: optional::Noned + metfor::Length,
+        Meters: From<W>,
     {
+        let elev: Optioned<W> = Optioned::from(elevation);
+        let elev: Optioned<Meters> = elev.map_t(Meters::from);
+
         StationInfo {
             num: station_num.into(),
             location: location.into(),
-            elevation: elevation.into(),
+            elevation: elev,
         }
     }
 
@@ -55,15 +62,11 @@ impl StationInfo {
     /// # Examples
     ///
     /// ```rust
-    /// # extern crate optional;
-    /// # extern crate sounding_base;
-    ///
     /// use sounding_base::StationInfo;
-    /// use optional::{some, none};
     ///
-    /// assert_eq!(StationInfo::new().station_num(), none());
-    /// assert_eq!(StationInfo::new().location(), None);
-    /// assert_eq!(StationInfo::new().elevation(), none());
+    /// assert!(StationInfo::new().station_num().is_none());
+    /// assert!(StationInfo::new().location().is_none());
+    /// assert!(StationInfo::new().elevation().is_none());
     ///
     /// ```
     #[inline]
@@ -96,7 +99,7 @@ impl StationInfo {
     #[inline]
     pub fn with_elevation<T>(mut self, elev: T) -> Self
     where
-        Optioned<f64>: From<T>,
+        Optioned<Meters>: From<T>,
     {
         self.elevation = Optioned::from(elev);
         self
@@ -117,7 +120,7 @@ impl StationInfo {
     /// Elevation in meters, this may be in model terrain, not necessarily the same as
     /// the real world.
     #[inline]
-    pub fn elevation(&self) -> Optioned<f64> {
+    pub fn elevation(&self) -> Optioned<Meters> {
         self.elevation
     }
 }

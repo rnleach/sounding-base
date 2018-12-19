@@ -15,32 +15,31 @@ data to build on and use.
 
 ## Examples
 ```rust
-extern crate chrono;
-extern crate sounding_base;
-extern crate optional;
-
 use optional::{Optioned, some};
+use metfor::{HectoPascal, Celsius, Meters};
 
-use sounding_base::{Sounding, StationInfo, Profile, Surface};
+use sounding_base::{Sounding, StationInfo};
 
 fn main() {
 
     // Create  pressure profile
-    let pressure_profile: Vec<Optioned<f64>> =
+    let pressure_profile: Vec<Optioned<HectoPascal>> =
         vec![1000.0, 925.0, 850.0, 700.0, 500.0, 300.0, 250.0, 100.0]
-            .iter()
-            .map(|p| some(*p))
+            .into_iter()
+            .map(HectoPascal)
+            .map(some)
             .collect();
 
     // Create a temperature profile
-    let temperature_profile: Vec<Optioned<f64>> =
+    let temperature_profile: Vec<Optioned<Celsius>> =
         vec![13.0, 7.0, 5.0, -4.5, -20.6, -44.0, -52.0, -56.5]
-            .iter()
-            .map(|t| some(*t))
+            .into_iter()
+            .map(Celsius)
+            .map(some)
             .collect();
 
     // Create some station info
-    let stn = StationInfo::new_with_values(None, (45.6789, -115.6789), 992.0);
+    let stn = StationInfo::new_with_values(None, (45.6789, -115.6789), Meters(992.0));
 
     // Create a valid time. This uses a `chrono::NaiveDateTime`, and you should always assume
     // that valid times are in UTC.
@@ -51,53 +50,51 @@ fn main() {
         .set_station_info(stn)
         .set_valid_time(vt)
         .set_lead_time(24)  // Lead time in hours for forecast soundings.
-        .set_profile(Profile::Pressure, pressure_profile)
-        .set_profile(Profile::Temperature, temperature_profile)
-        // Surface values don't have to be `Optioned`
-        .set_surface_value(Surface::StationPressure, 1013.25)
-        // But they can be
-        .set_surface_value(Surface::Temperature, some(15.0));
+        .set_pressure_profile(pressure_profile)
+        .set_temperature_profile(temperature_profile)
+        .set_station_pressure(some(HectoPascal(1013.25)))
+        .set_sfc_temperature(some(Celsius(15.0)));
 
     // Top down and bottom up iterators are provided. If surface data is available, it is
     // inserted into the profile.
     let mut iter = snd.top_down();
 
     let mut data_row = iter.next().unwrap();
-    assert_eq!(data_row.pressure, some(100.0));
-    assert_eq!(data_row.temperature, some(-56.5));
+    assert_eq!(data_row.pressure, some(HectoPascal(100.0)));
+    assert_eq!(data_row.temperature, some(Celsius(-56.5)));
 
     data_row = iter.next().unwrap();
-    assert_eq!(data_row.pressure, some(250.0));
-    assert_eq!(data_row.temperature, some(-52.0));
+    assert_eq!(data_row.pressure, some(HectoPascal(250.0)));
+    assert_eq!(data_row.temperature, some(Celsius(-52.0)));
 
     data_row = iter.next().unwrap();
-    assert_eq!(data_row.pressure, some(300.0));
-    assert_eq!(data_row.temperature, some(-44.0));
+    assert_eq!(data_row.pressure, some(HectoPascal(300.0)));
+    assert_eq!(data_row.temperature, some(Celsius(-44.0)));
 
     data_row = iter.next().unwrap();
-    assert_eq!(data_row.pressure, some(500.0));
-    assert_eq!(data_row.temperature, some(-20.6));
+    assert_eq!(data_row.pressure, some(HectoPascal(500.0)));
+    assert_eq!(data_row.temperature, some(Celsius(-20.6)));
 
     data_row = iter.next().unwrap();
-    assert_eq!(data_row.pressure, some(700.0));
-    assert_eq!(data_row.temperature, some(-4.5));
+    assert_eq!(data_row.pressure, some(HectoPascal(700.0)));
+    assert_eq!(data_row.temperature, some(Celsius(-4.5)));
 
     data_row = iter.next().unwrap();
-    assert_eq!(data_row.pressure, some(850.0));
-    assert_eq!(data_row.temperature, some(5.0));
+    assert_eq!(data_row.pressure, some(HectoPascal(850.0)));
+    assert_eq!(data_row.temperature, some(Celsius(5.0)));
 
     data_row = iter.next().unwrap();
-    assert_eq!(data_row.pressure, some(925.0));
-    assert_eq!(data_row.temperature, some(7.0));
+    assert_eq!(data_row.pressure, some(HectoPascal(925.0)));
+    assert_eq!(data_row.temperature, some(Celsius(7.0)));
 
     data_row = iter.next().unwrap();
-    assert_eq!(data_row.pressure, some(1000.0));
-    assert_eq!(data_row.temperature, some(13.0));
+    assert_eq!(data_row.pressure, some(HectoPascal(1000.0)));
+    assert_eq!(data_row.temperature, some(Celsius(13.0)));
 
     // THIS ONE IS THE SURFACE DATA!
     data_row = iter.next().unwrap();
-    assert_eq!(data_row.pressure, some(1013.25));
-    assert_eq!(data_row.temperature, some(15.0));
+    assert_eq!(data_row.pressure, some(HectoPascal(1013.25)));
+    assert_eq!(data_row.temperature, some(Celsius(15.0)));
 
     assert_eq!(iter.next(), None);
 
