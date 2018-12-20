@@ -16,7 +16,7 @@ data to build on and use.
 ## Examples
 ```rust
 use optional::{Optioned, some};
-use metfor::{HectoPascal, Celsius, Meters};
+use metfor::{HectoPascal, Celsius, Feet};
 
 use sounding_base::{Sounding, StationInfo};
 
@@ -39,7 +39,7 @@ fn main() {
             .collect();
 
     // Create some station info
-    let stn = StationInfo::new_with_values(None, (45.6789, -115.6789), Meters(992.0));
+    let stn = StationInfo::new_with_values(None, (45.6789, -115.6789), Feet(992.0));
 
     // Create a valid time. This uses a `chrono::NaiveDateTime`, and you should always assume
     // that valid times are in UTC.
@@ -47,13 +47,13 @@ fn main() {
 
     // Use the builder pattern to construct a sounding.
     let snd = Sounding::new()
-        .set_station_info(stn)
-        .set_valid_time(vt)
-        .set_lead_time(24)  // Lead time in hours for forecast soundings.
-        .set_pressure_profile(pressure_profile)
-        .set_temperature_profile(temperature_profile)
-        .set_station_pressure(some(HectoPascal(1013.25)))
-        .set_sfc_temperature(some(Celsius(15.0)));
+        .with_station_info(stn)
+        .with_valid_time(vt)
+        .with_lead_time(24)  // Lead time in hours for forecast soundings.
+        .with_pressure_profile(pressure_profile)
+        .with_temperature_profile(temperature_profile)
+        .with_station_pressure(some(HectoPascal(1013.25)))
+        .with_sfc_temperature(some(Celsius(15.0)));
 
     // Top down and bottom up iterators are provided. If surface data is available, it is
     // inserted into the profile.
