@@ -93,6 +93,13 @@ impl Sounding {
     }
 
     /// Set the station info.
+    #[inline]
+    #[deprecated(since = "0.9.1", note = "Use `with_station_info` instead.")]
+    pub fn set_station_info(self, new_value: StationInfo) -> Self {
+        self.with_station_info(new_value)
+    }
+
+    /// Builder function for setting the station info.
     ///
     /// # Examples
     ///
@@ -100,14 +107,11 @@ impl Sounding {
     /// use sounding_base::{Sounding, StationInfo};
     ///
     /// let stn = StationInfo::new();
-    /// // set station values
-    ///
-    /// let _snd = Sounding::new()
-    ///     .set_station_info(stn);
+    /// let _snd = Sounding::new().with_station_info(stn);
     ///
     /// ```
     #[inline]
-    pub fn set_station_info(mut self, new_value: StationInfo) -> Self {
+    pub fn with_station_info(mut self, new_value: StationInfo) -> Self {
         self.station = new_value;
         self
     }
@@ -133,6 +137,13 @@ impl Sounding {
 
     make_profile_setter!(
         /// Set the pressure profile.
+        #[inline]
+        #[deprecated(since = "0.9.1", note = "Use `with_pressure_profile` instead.")]
+        => set_pressure_profile, station_pressure, HectoPascal, pressure
+    );
+
+    make_profile_setter!(
+        /// Builder method for the pressure profile.
         ///
         /// # Examples
         /// ```rust
@@ -147,10 +158,10 @@ impl Sounding {
         ///     .collect();
         ///
         /// let _snd = Sounding::new()
-        ///     .set_pressure_profile(pressure_data);
+        ///     .with_pressure_profile(pressure_data);
         /// ```
         #[inline]
-        => set_pressure_profile, station_pressure, HectoPascal, pressure
+        => with_pressure_profile, station_pressure, HectoPascal, pressure
     );
 
     /// Get the pressure profile
@@ -185,11 +196,18 @@ impl Sounding {
 
     make_profile_setter!(
         /// Set the temperature profile.
+        #[inline]
+        #[deprecated(since = "0.9.1", note = "Use `with_temperature_profile` instead.")]
+        => set_temperature_profile, sfc_temperature, Celsius, temperature
+    );
+
+    make_profile_setter!(
+        /// Builder method for the temperature profile.
         ///
-        /// See `set_pressure_profile` for an example of usage, keeping mind the units type may
+        /// See `with_pressure_profile` for an example of usage, keeping in mind the units type may
         /// be different.
         #[inline]
-        => set_temperature_profile, sfc_temperature, Celsius, temperature
+        => with_temperature_profile, sfc_temperature, Celsius, temperature
     );
 
     /// Get the temperature profile.
@@ -203,11 +221,18 @@ impl Sounding {
 
     make_profile_setter!(
         /// Set the dew point profile.
+        #[inline]
+        #[deprecated(since = "0.9.1", note = "Use `with_dew_point_profile` instead.")]
+        => set_dew_point_profile, sfc_dew_point, Celsius, dew_point
+    );
+
+    make_profile_setter!(
+        /// Builder method for the dew point profile.
         ///
-        /// See `set_pressure_profile` for an example of usage, keeping mind the units type may
+        /// See `with_pressure_profile` for an example of usage, keeping in mind the units type may
         /// be different.
         #[inline]
-        => set_dew_point_profile, sfc_dew_point, Celsius, dew_point
+        => with_dew_point_profile, sfc_dew_point, Celsius, dew_point
     );
 
     /// Get the dew point profile.
@@ -221,11 +246,18 @@ impl Sounding {
 
     make_profile_setter!(
         /// Set the wet bulb profile.
+        #[inline]
+        #[deprecated(since = "0.9.1", note = "Use `with_wet_bulb_profile` instead.")]
+        => set_wet_bulb_profile, surface_wet_bulb(), Celsius, wet_bulb
+    );
+
+    make_profile_setter!(
+        /// Builder method for the wet bulb profile.
         ///
-        /// See `set_pressure_profile` for an example of usage, keeping mind the units type may
+        /// See `with_pressure_profile` for an example of usage, keeping in mind the units type may
         /// be different.
         #[inline]
-        => set_wet_bulb_profile, surface_wet_bulb(), Celsius, wet_bulb
+        => with_wet_bulb_profile, surface_wet_bulb(), Celsius, wet_bulb
     );
 
     /// Get the wet bulb temperature profile.
@@ -239,11 +271,18 @@ impl Sounding {
 
     make_profile_setter!(
         /// Set the theta e profile.
+        #[inline]
+        #[deprecated(since = "0.9.1", note = "Use `with_wet_bulb_profile` instead.")]
+        => set_theta_e_profile, surface_theta_e(), Kelvin, theta_e
+    );
+
+    make_profile_setter!(
+        /// Builder method for the theta e profile.
         ///
-        /// See `set_pressure_profile` for an example of usage, keeping mind the units type may
+        /// See `with_pressure_profile` for an example of usage, keeping in mind the units type may
         /// be different.
         #[inline]
-        => set_theta_e_profile, surface_theta_e(), Kelvin, theta_e
+        => with_theta_e_profile, surface_theta_e(), Kelvin, theta_e
     );
 
     /// Get the equivalent potential temperature profile.
@@ -257,11 +296,18 @@ impl Sounding {
 
     make_profile_setter!(
         /// Set the wind profile.
+        #[inline]
+        #[deprecated(since = "0.9.1", note = "Use `with_wind_profile` instead.")]
+        => set_wind_profile, sfc_wind, WindSpdDir, wind
+    );
+
+    make_profile_setter!(
+        /// Builder method for the wind profile.
         ///
-        /// See `set_pressure_profile` for an example of usage, keeping mind the units type may
+        /// See `set_pressure_profile` for an example of usage, keeping in mind the units type may
         /// be different.
         #[inline]
-        => set_wind_profile, sfc_wind, WindSpdDir, wind
+        => with_wind_profile, sfc_wind, WindSpdDir, wind
     );
 
     /// Get the wind profile.
@@ -275,11 +321,18 @@ impl Sounding {
 
     make_profile_setter!(
         /// Set the pressure vertical velocity profile.
+        #[inline]
+        #[deprecated(since = "0.9.1", note = "Use `with_pvv_profile` instead.")]
+        => set_pvv_profile, optional::some(PaPS(0.0)), PaPS, pvv
+    );
+
+    make_profile_setter!(
+        /// Builder method for the pressure vertical velocity profile.
         ///
-        /// See `set_pressure_profile` for an example of usage, keeping mind the units type may
+        /// See `set_pressure_profile` for an example of usage, keeping in mind the units type may
         /// be different.
         #[inline]
-        => set_pvv_profile, optional::some(PaPS(0.0)), PaPS, pvv
+        => with_pvv_profile, optional::some(PaPS(0.0)), PaPS, pvv
     );
 
     /// Get the pressure vertical velocity profile.
@@ -293,11 +346,18 @@ impl Sounding {
 
     make_profile_setter!(
         /// Set the geopotential height profile.
+        #[inline]
+        #[deprecated(since = "0.9.1", note = "Use `with_height_profile` instead.")]
+        => set_height_profile, surface_height(), Meters, height
+    );
+
+    make_profile_setter!(
+        /// Builder method for the geopotential height profile.
         ///
-        /// See `set_pressure_profile` for an example of usage, keeping mind the units type may
+        /// See `set_pressure_profile` for an example of usage, keeping in mind the units type may
         /// be different.
         #[inline]
-        => set_height_profile, surface_height(), Meters, height
+        => with_height_profile, surface_height(), Meters, height
     );
 
     /// Get the geopotential height profile.
@@ -311,11 +371,18 @@ impl Sounding {
 
     make_profile_setter!(
         /// Set the cloud cover profile.
+        #[inline]
+        #[deprecated(since = "0.9.1", note = "Use `with_cloud_fraction_profile` instead.")]
+        => set_cloud_fraction_profile, optional::some(0.0), f64, cloud_fraction
+    );
+
+    make_profile_setter!(
+        /// Builder method for the cloud cover profile.
         ///
-        /// See `set_pressure_profile` for an example of usage, keeping mind the units type may
+        /// See `set_pressure_profile` for an example of usage, keeping in mind the units type may
         /// be different.
         #[inline]
-        => set_cloud_fraction_profile, optional::some(0.0), f64, cloud_fraction
+        => with_cloud_fraction_profile, optional::some(0.0), f64, cloud_fraction
     );
 
     /// Get the cloud fraction profile.
@@ -329,13 +396,42 @@ impl Sounding {
 
     /// Set the mean sea level pressure.
     #[inline]
-    pub fn set_mslp<T, U>(self, value: Optioned<T>) -> Self
+    #[deprecated(since = "0.9.1", note = "Use `with_mslp` instead.")]
+    pub fn set_mslp<T, U>(self, value: T) -> Self
     where
-        HectoPascal: From<T>,
-        T: optional::Noned + metfor::Pressure,
+        Optioned<U>: From<T>,
+        U: optional::Noned + metfor::Pressure,
+        HectoPascal: From<U>,
     {
-        let mslp = value.map_t(HectoPascal::from);
-        Self { mslp, ..self }
+        self.with_mslp(value)
+    }
+
+    /// Builder method for the mean sea level pressure.
+    ///
+    /// # Examples
+    ///```rust
+    /// use metfor::{HectoPascal, Millibar};
+    /// use sounding_base::Sounding;
+    /// use optional::{some, none};
+    ///
+    /// let _snd = Sounding::new().with_mslp(HectoPascal(1021.5));
+    /// let _snd = Sounding::new().with_mslp(some(HectoPascal(1021.5)));
+    /// let _snd = Sounding::new().with_mslp(none::<HectoPascal>());
+    /// let _snd = Sounding::new().with_mslp(Millibar(1021.5));
+    /// let _snd = Sounding::new().with_mslp(some(Millibar(1021.5)));
+    /// let _snd = Sounding::new().with_mslp(none::<Millibar>());
+    ///```
+    #[inline]
+    pub fn with_mslp<T, U>(mut self, value: T) -> Self
+    where
+        Optioned<U>: From<T>,
+        U: optional::Noned + metfor::Pressure,
+        HectoPascal: From<U>,
+    {
+        let pressure: Optioned<U> = Optioned::from(value);
+        let pressure: Optioned<HectoPascal> = pressure.map_t(HectoPascal::from);
+        self.mslp = pressure;
+        self
     }
 
     /// Get the mean sea level pressure
@@ -345,27 +441,53 @@ impl Sounding {
     }
 
     /// Set the station pressure.
+    #[deprecated(since = "0.9.1", note = "Use `with_station_pressure` instead.")]
     #[inline]
-    pub fn set_station_pressure<T>(mut self, value: Optioned<T>) -> Self
+    pub fn set_station_pressure<T, U>(self, value: T) -> Self
     where
-        HectoPascal: From<T>,
-        T: optional::Noned + metfor::Pressure,
+        Optioned<U>: From<T>,
+        U: optional::Noned + metfor::Pressure,
+        HectoPascal: From<U>,
     {
+        self.with_station_pressure(value)
+    }
+
+    /// Biulder method for the station pressure.
+    ///
+    /// # Examples
+    ///```rust
+    /// use metfor::{HectoPascal, Millibar};
+    /// use sounding_base::Sounding;
+    /// use optional::{some, none};
+    ///
+    /// let _snd = Sounding::new().with_station_pressure(HectoPascal(1021.5));
+    /// let _snd = Sounding::new().with_station_pressure(some(HectoPascal(1021.5)));
+    /// let _snd = Sounding::new().with_station_pressure(none::<HectoPascal>());
+    /// let _snd = Sounding::new().with_station_pressure(Millibar(1021.5));
+    /// let _snd = Sounding::new().with_station_pressure(some(Millibar(1021.5)));
+    /// let _snd = Sounding::new().with_station_pressure(none::<Millibar>());
+    ///```
+    #[inline]
+    pub fn with_station_pressure<T, U>(mut self, value: T) -> Self
+    where
+        Optioned<U>: From<T>,
+        U: optional::Noned + metfor::Pressure,
+        HectoPascal: From<U>,
+    {
+        let pressure: Optioned<U> = Optioned::from(value);
+        let pressure: Optioned<HectoPascal> = pressure.map_t(HectoPascal::from);
+
         // Add it in to the profile.
-        let station_pressure = value.map_t(HectoPascal::from);
         if !self.pressure.is_empty() {
-            self.pressure[0] = station_pressure;
+            self.pressure[0] = pressure;
         }
 
-        self = Self {
-            station_pressure,
-            ..self
-        };
+        self.station_pressure = pressure;
         self.update_sfc_wet_bulb_theta_e(); // updates wet bulb and theta_e profiles
         self
     }
 
-    /// Get the mean sea level pressure
+    /// Get the mean sea level pressure.
     #[inline]
     pub fn station_pressure(&self) -> Optioned<HectoPascal> {
         self.station_pressure
@@ -373,66 +495,153 @@ impl Sounding {
 
     /// Set the surface temperature.
     #[inline]
-    pub fn set_sfc_temperature<T>(mut self, value: Optioned<T>) -> Self
+    #[deprecated(since = "0.9.1", note = "Use `with_sfc_temperature` instead.")]
+    pub fn set_sfc_temperature<T, U>(self, value: T) -> Self
     where
-        Celsius: From<T>,
-        T: optional::Noned + metfor::Temperature,
+        Optioned<U>: From<T>,
+        U: optional::Noned + metfor::Temperature,
+        Celsius: From<U>,
     {
+        self.with_sfc_temperature(value)
+    }
+
+    /// Builder method the surface temperature.
+    ///
+    /// # Examples
+    ///```rust
+    /// use metfor::{Fahrenheit, Celsius, Kelvin};
+    /// use sounding_base::Sounding;
+    /// use optional::{some, none};
+    ///
+    /// let _snd = Sounding::new().with_sfc_temperature(Celsius(20.0));
+    /// let _snd = Sounding::new().with_sfc_temperature(some(Celsius(20.0)));
+    /// let _snd = Sounding::new().with_sfc_temperature(none::<Celsius>());
+    /// let _snd = Sounding::new().with_sfc_temperature(Kelvin(290.0));
+    /// let _snd = Sounding::new().with_sfc_temperature(some(Kelvin(290.0)));
+    /// let _snd = Sounding::new().with_sfc_temperature(none::<Kelvin>());
+    /// let _snd = Sounding::new().with_sfc_temperature(Fahrenheit(72.1));
+    /// let _snd = Sounding::new().with_sfc_temperature(some(Fahrenheit(72.1)));
+    /// let _snd = Sounding::new().with_sfc_temperature(none::<Fahrenheit>());
+    ///```
+    #[inline]
+    pub fn with_sfc_temperature<T, U>(mut self, value: T) -> Self
+    where
+        Optioned<U>: From<T>,
+        U: optional::Noned + metfor::Temperature,
+        Celsius: From<U>,
+    {
+        let sfc_temperature: Optioned<U> = Optioned::from(value);
+        let sfc_temperature: Optioned<Celsius> = sfc_temperature.map_t(Celsius::from);
+
         // Add it in to the profile.
-        let sfc_temperature = value.map_t(Celsius::from);
         if !self.temperature.is_empty() {
             self.temperature[0] = sfc_temperature;
         }
 
-        self = Self {
-            sfc_temperature,
-            ..self
-        };
+        self.sfc_temperature = sfc_temperature;
         self.update_sfc_wet_bulb_theta_e(); // updates wet bulb and theta_e profiles
         self
     }
 
-    /// Get the surface temperature
+    /// Get the surface temperature.
     #[inline]
     pub fn sfc_temperature(&self) -> Optioned<Celsius> {
         self.sfc_temperature
     }
 
-    /// Set the surface dew point
+    /// Set the surface dew point.
     #[inline]
-    pub fn set_sfc_dew_point<T>(mut self, value: Optioned<T>) -> Self
+    #[deprecated(since = "0.9.1", note = "Use `with_sfc_dew_point` instead.")]
+    pub fn set_sfc_dew_point<T, U>(self, value: T) -> Self
     where
-        Celsius: From<T>,
-        T: optional::Noned + metfor::Temperature,
+        Optioned<U>: From<T>,
+        U: optional::Noned + metfor::Temperature,
+        Celsius: From<U>,
     {
+        self.with_sfc_dew_point(value)
+    }
+
+    /// Set the surface dew point.
+    ///
+    /// # Examples
+    ///```rust
+    /// use metfor::{Fahrenheit, Celsius, Kelvin};
+    /// use sounding_base::Sounding;
+    /// use optional::{some, none};
+    ///
+    /// let _snd = Sounding::new().with_sfc_dew_point(Celsius(20.0));
+    /// let _snd = Sounding::new().with_sfc_dew_point(some(Celsius(20.0)));
+    /// let _snd = Sounding::new().with_sfc_dew_point(none::<Celsius>());
+    /// let _snd = Sounding::new().with_sfc_dew_point(Kelvin(290.0));
+    /// let _snd = Sounding::new().with_sfc_dew_point(some(Kelvin(290.0)));
+    /// let _snd = Sounding::new().with_sfc_dew_point(none::<Kelvin>());
+    /// let _snd = Sounding::new().with_sfc_dew_point(Fahrenheit(72.1));
+    /// let _snd = Sounding::new().with_sfc_dew_point(some(Fahrenheit(72.1)));
+    /// let _snd = Sounding::new().with_sfc_dew_point(none::<Fahrenheit>());
+    ///```
+    #[inline]
+    pub fn with_sfc_dew_point<T, U>(mut self, value: T) -> Self
+    where
+        Optioned<U>: From<T>,
+        U: optional::Noned + metfor::Temperature,
+        Celsius: From<U>,
+    {
+        let sfc_dew_point: Optioned<U> = Optioned::from(value);
+        let sfc_dew_point: Optioned<Celsius> = sfc_dew_point.map_t(Celsius::from);
+
         // Add it in to the profile.
-        let sfc_dew_point = value.map_t(Celsius::from);
         if !self.dew_point.is_empty() {
             self.dew_point[0] = sfc_dew_point;
         }
 
-        self = Self {
-            sfc_dew_point,
-            ..self
-        };
+        self.sfc_dew_point = sfc_dew_point;
         self.update_sfc_wet_bulb_theta_e(); // updates wet bulb and theta_e profiles
         self
     }
 
-    /// Get the surface dew point
+    /// Get the surface dew point.
     #[inline]
     pub fn sfc_dew_point(&self) -> Optioned<Celsius> {
         self.sfc_dew_point
     }
 
-    /// Set the surface wind
+    /// Set the surface wind.
     #[inline]
-    pub fn set_sfc_wind<T>(mut self, value: Optioned<T>) -> Self
+    #[deprecated(since = "0.9.1", note = "Use `with_sfc_wind` instead.")]
+    pub fn set_sfc_wind<T, U>(self, value: T) -> Self
     where
-        WindSpdDir: From<T>,
-        T: optional::Noned + metfor::Wind,
+        Optioned<U>: From<T>,
+        U: optional::Noned + metfor::Wind,
+        WindSpdDir: From<U>,
     {
-        let sfc_wind = value.map_t(WindSpdDir::from);
+        self.with_sfc_wind(value)
+    }
+
+    /// Set the surface wind.
+    ///
+    /// # Examples
+    ///```rust
+    /// use sounding_base::Sounding;
+    /// use metfor::{WindSpdDir, WindUV};
+    /// use optional::{some, none};
+    ///
+    /// let _snd = Sounding::new().with_sfc_wind(WindSpdDir{speed_kt: 10.0, direction: 270.0});
+    /// let _snd = Sounding::new().with_sfc_wind(some(WindSpdDir{speed_kt: 10.0, direction: 270.0}));
+    /// let _snd = Sounding::new().with_sfc_wind(none::<WindSpdDir>());
+    /// let _snd = Sounding::new().with_sfc_wind(some(WindUV{u: -7.3, v: 5.2}));
+    /// let _snd = Sounding::new().with_sfc_wind(WindUV{u: -7.3, v: 5.2});
+    /// let _snd = Sounding::new().with_sfc_wind(none::<WindUV>());
+    ///```
+    #[inline]
+    pub fn with_sfc_wind<T, U>(mut self, value: T) -> Self
+    where
+        Optioned<U>: From<T>,
+        U: optional::Noned + metfor::Wind,
+        WindSpdDir: From<U>,
+    {
+        let sfc_wind: Optioned<U> = Optioned::from(value);
+        let sfc_wind: Optioned<WindSpdDir> = sfc_wind.map_t(WindSpdDir::from);
+
         if !self.wind.is_empty() {
             self.wind[0] = sfc_wind;
         }
@@ -447,24 +656,44 @@ impl Sounding {
     }
 
     /// Set the precipitation.
+    #[inline]
+    #[deprecated(since = "0.9.1", note = "Use `with_precipitation` instead.")]
+    pub fn set_precipitation<T, U>(self, value: T) -> Self
+    where
+        Optioned<U>: From<T>,
+        U: optional::Noned + metfor::Length,
+        Mm: From<U>,
+    {
+        self.with_precipitation(value)
+    }
+
+    /// Builder method for the precipitation.
     ///
     /// # Examples
     ///```rust
     /// use sounding_base::Sounding;
-    /// use metfor::{Meters, Feet};
+    /// use metfor::{Inches, Mm, Cm};
     /// use optional::{some, none};
     ///
-    /// let _snd = Sounding::new().set_precipitation(some(Feet(1.0/12.0)));
-    /// let _snd = Sounding::new().set_precipitation(some(Meters(0.025)));
-    /// let _snd = Sounding::new().set_precipitation(none::<Meters>());
+    /// let _snd = Sounding::new().with_precipitation(Inches(1.0));
+    /// let _snd = Sounding::new().with_precipitation(some(Inches(1.0)));
+    /// let _snd = Sounding::new().with_precipitation(none::<Inches>());
+    /// let _snd = Sounding::new().with_precipitation(some(Cm(2.5)));
+    /// let _snd = Sounding::new().with_precipitation(Cm(2.5));
+    /// let _snd = Sounding::new().with_precipitation(none::<Cm>());
+    /// let _snd = Sounding::new().with_precipitation(some(Mm(25.0)));
+    /// let _snd = Sounding::new().with_precipitation(Mm(25.0));
+    /// let _snd = Sounding::new().with_precipitation(none::<Mm>());
     ///```
     #[inline]
-    pub fn set_precipitation<T>(self, value: Optioned<T>) -> Self
+    pub fn with_precipitation<T, U>(self, value: T) -> Self
     where
-        Mm: From<T>,
-        T: optional::Noned + metfor::Length,
+        Optioned<U>: From<T>,
+        U: optional::Noned + metfor::Length,
+        Mm: From<U>,
     {
-        let precipitation = value.map_t(Mm::from);
+        let precipitation: Optioned<U> = Optioned::from(value);
+        let precipitation: Optioned<Mm> = precipitation.map_t(Mm::from);
 
         Self {
             precipitation,
@@ -472,19 +701,47 @@ impl Sounding {
         }
     }
 
-    /// Get the precipitation
+    /// Get the precipitation.
     #[inline]
     pub fn precipitation(&self) -> Optioned<Mm> {
         self.precipitation
     }
 
-    /// Set the low cloud amount
+    /// Set the low cloud amount in the range 0.0 to 1.0.
     #[inline]
+    #[deprecated(since = "0.9.1", note = "Use `with_low_cloud` instead.")]
     pub fn set_low_cloud<T>(self, value: T) -> Self
     where
         Optioned<f64>: From<T>,
     {
+        self.with_low_cloud(value)
+    }
+
+    /// Builder method for the low cloud amount in the range 0.0 to 1.0.
+    ///
+    /// # Examples
+    ///```rust
+    /// use sounding_base::Sounding;
+    /// use optional::{some, none};
+    ///
+    /// let _snd = Sounding::new().with_low_cloud(0.5);
+    /// let _snd = Sounding::new().with_low_cloud(some(0.5));
+    /// let _snd = Sounding::new().with_low_cloud(none());
+    ///```
+    #[inline]
+    pub fn with_low_cloud<T>(self, value: T) -> Self
+    where
+        Optioned<f64>: From<T>,
+    {
         let low_cloud: Optioned<f64> = Optioned::from(value);
+
+        debug_assert!({
+            if let Some(cld) = low_cloud.into_option() {
+                cld >= 0.0 && cld <= 1.0
+            } else {
+                true
+            }
+        });
 
         Self { low_cloud, ..self }
     }
@@ -495,13 +752,41 @@ impl Sounding {
         self.low_cloud
     }
 
-    /// Set the mid cloud amount
+    /// Set the mid cloud amount in the range 0.0 to 1.0.
     #[inline]
+    #[deprecated(since = "0.9.1", note = "Use `with_mid_cloud` instead.")]
     pub fn set_mid_cloud<T>(self, value: T) -> Self
     where
         Optioned<f64>: From<T>,
     {
+        self.with_mid_cloud(value)
+    }
+
+    /// Builder method for the mid cloud amount in the range 0.0 to 1.0.
+    ///
+    /// # Examples
+    ///```rust
+    /// use sounding_base::Sounding;
+    /// use optional::{some, none};
+    ///
+    /// let _snd = Sounding::new().with_mid_cloud(0.5);
+    /// let _snd = Sounding::new().with_mid_cloud(some(0.5));
+    /// let _snd = Sounding::new().with_mid_cloud(none());
+    ///```
+    #[inline]
+    pub fn with_mid_cloud<T>(self, value: T) -> Self
+    where
+        Optioned<f64>: From<T>,
+    {
         let mid_cloud: Optioned<f64> = Optioned::from(value);
+
+        debug_assert!({
+            if let Some(cld) = mid_cloud.into_option() {
+                cld >= 0.0 && cld <= 1.0
+            } else {
+                true
+            }
+        });
 
         Self { mid_cloud, ..self }
     }
@@ -512,13 +797,41 @@ impl Sounding {
         self.mid_cloud
     }
 
-    /// Set the high cloud amount
+    /// Set the high cloud amount in the range 0.0 to 1.0.
     #[inline]
+    #[deprecated(since = "0.9.1", note = "Use `with_high_cloud` instead.")]
     pub fn set_high_cloud<T>(self, value: T) -> Self
     where
         Optioned<f64>: From<T>,
     {
+        self.with_high_cloud(value)
+    }
+
+    /// Builder method for the high cloud amount in the range 0.0 to 1.0.
+    ///
+    /// # Examples
+    ///```rust
+    /// use sounding_base::Sounding;
+    /// use optional::{some, none};
+    ///
+    /// let _snd = Sounding::new().with_high_cloud(0.5);
+    /// let _snd = Sounding::new().with_high_cloud(some(0.5));
+    /// let _snd = Sounding::new().with_high_cloud(none());
+    ///```
+    #[inline]
+    pub fn with_high_cloud<T>(self, value: T) -> Self
+    where
+        Optioned<f64>: From<T>,
+    {
         let high_cloud: Optioned<f64> = Optioned::from(value);
+
+        debug_assert!({
+            if let Some(cld) = high_cloud.into_option() {
+                cld >= 0.0 && cld <= 1.0
+            } else {
+                true
+            }
+        });
 
         Self { high_cloud, ..self }
     }
@@ -531,7 +844,27 @@ impl Sounding {
 
     /// Difference in model initialization time and `valid_time` in hours.
     #[inline]
-    pub fn set_lead_time<T>(mut self, lt: T) -> Self
+    #[deprecated(since = "0.9.1", note = "Use `with_lead_time` instead.")]
+    pub fn set_lead_time<T>(self, lt: T) -> Self
+    where
+        Optioned<i32>: From<T>,
+    {
+        self.with_lead_time(lt)
+    }
+
+    /// Difference in model initialization time and `valid_time` in hours.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use sounding_base::Sounding;
+    ///
+    /// let _snd = Sounding::new().with_lead_time(24);
+    /// let snd = Sounding::new().with_lead_time(Some(24));
+    ///
+    /// assert_eq!(snd.lead_time().unwrap(), 24);
+    /// ```
+    #[inline]
+    pub fn with_lead_time<T>(mut self, lt: T) -> Self
     where
         Optioned<i32>: From<T>,
     {
@@ -541,19 +874,53 @@ impl Sounding {
 
     /// Difference in model initialization time and `valid_time` in hours.
     #[inline]
-    pub fn get_lead_time(&self) -> Optioned<i32> {
+    pub fn lead_time(&self) -> Optioned<i32> {
         self.lead_time
     }
 
-    /// Valid time of the sounding
+    /// Difference in model initialization time and `valid_time` in hours.
     #[inline]
-    pub fn get_valid_time(&self) -> Option<NaiveDateTime> {
+    #[deprecated(since = "0.9.1", note = "Use `lead_time()` instead.")]
+    pub fn get_lead_time(&self) -> Optioned<i32> {
+        self.lead_time()
+    }
+
+    /// Valid time of the sounding.
+    #[inline]
+    pub fn valid_time(&self) -> Option<NaiveDateTime> {
         self.valid_time
     }
 
-    /// Builder method to set the valid time of the sounding
+    /// Valid time of the sounding.
     #[inline]
-    pub fn set_valid_time<T>(mut self, valid_time: T) -> Self
+    #[deprecated(since = "0.9.1", note = "Use `valid_time()` instead.")]
+    pub fn get_valid_time(&self) -> Option<NaiveDateTime> {
+        self.valid_time()
+    }
+
+    /// Builder method to set the valid time of the sounding.
+    #[inline]
+    #[deprecated(since = "0.9.1", note = "Use `with_valid_time` instead.")]
+    pub fn set_valid_time<T>(self, valid_time: T) -> Self
+    where
+        Option<NaiveDateTime>: From<T>,
+    {
+        self.with_valid_time(valid_time)
+    }
+
+    /// Builder method to set the valid time of the sounding.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use sounding_base::Sounding;
+    /// use chrono::NaiveDate;
+    ///
+    /// let vtime = NaiveDate::from_ymd(2019, 1, 1).and_hms(12, 0, 0);
+    /// let _snd = Sounding::new().with_valid_time(vtime);
+    /// let _snd = Sounding::new().with_valid_time(Some(vtime));
+    /// ```
+    #[inline]
+    pub fn with_valid_time<T>(mut self, valid_time: T) -> Self
     where
         Option<NaiveDateTime>: From<T>,
     {
@@ -563,6 +930,49 @@ impl Sounding {
 
     /// Get a bottom up iterator over the data rows. The first value returned from the iterator is
     /// surface values.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use metfor::{HectoPascal, Millibar, Celsius};
+    /// use optional::some;
+    /// use sounding_base::Sounding;
+    ///
+    /// let pres: Vec<_> = vec![1000.0, 925.0, 850.0].into_iter()
+    ///     .map(HectoPascal).map(some).collect();
+    /// let temps: Vec<_> = vec![20.0, 18.0, 17.0].into_iter()
+    ///     .map(Celsius).map(some).collect();
+    ///
+    /// let snd = Sounding::new()
+    ///     .with_pressure_profile(pres)
+    ///     .with_temperature_profile(temps)
+    ///     .with_station_pressure(Millibar(1014.0));
+    ///
+    /// let mut iter = snd.bottom_up();
+    ///
+    /// let mut row = iter.next().unwrap();
+    /// assert_eq!(row.pressure.unwrap(), HectoPascal(1014.0)); // Surface values first!
+    /// assert!(row.temperature.is_none());  // We never set a surface temprature!
+    /// assert!(row.wind.is_none()); // We never set wind profile.
+    ///
+    /// row = iter.next().unwrap();
+    /// assert_eq!(row.pressure.unwrap(), HectoPascal(1000.0));
+    /// assert_eq!(row.temperature.unwrap(), Celsius(20.0));
+    /// assert!(row.wind.is_none()); // We never set wind profile.
+    ///
+    /// row = iter.next().unwrap();
+    /// assert_eq!(row.pressure.unwrap(), HectoPascal(925.0));
+    /// assert_eq!(row.temperature.unwrap(), Celsius(18.0));
+    /// assert!(row.wind.is_none()); // We never set wind profile.
+    ///
+    /// row = iter.next().unwrap();
+    /// assert_eq!(row.pressure.unwrap(), HectoPascal(850.0));
+    /// assert_eq!(row.temperature.unwrap(), Celsius(17.0));
+    /// assert!(row.wind.is_none()); // We never set wind profile.
+    ///
+    /// let row_opt = iter.next();
+    /// assert!(row_opt.is_none());
+    /// ```
     #[inline]
     pub fn bottom_up<'a>(&'a self) -> impl Iterator<Item = DataRow> + 'a {
         ProfileIterator {
@@ -573,6 +983,49 @@ impl Sounding {
     }
 
     /// Get a top down iterator over the data rows. The last value returned is the surface values.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use metfor::{HectoPascal, Millibar, Celsius};
+    /// use optional::some;
+    /// use sounding_base::Sounding;
+    ///
+    /// let pres: Vec<_> = vec![1000.0, 925.0, 850.0].into_iter()
+    ///     .map(HectoPascal).map(some).collect();
+    /// let temps: Vec<_> = vec![20.0, 18.0, 17.0].into_iter()
+    ///     .map(Celsius).map(some).collect();
+    ///
+    /// let snd = Sounding::new()
+    ///     .with_pressure_profile(pres)
+    ///     .with_temperature_profile(temps)
+    ///     .with_station_pressure(Millibar(1014.0));
+    ///
+    /// let mut iter = snd.top_down();
+    ///
+    /// let mut row = iter.next().unwrap();
+    /// assert_eq!(row.pressure.unwrap(), HectoPascal(850.0));
+    /// assert_eq!(row.temperature.unwrap(), Celsius(17.0));
+    /// assert!(row.wind.is_none()); // We never set wind profile.
+    ///
+    /// row = iter.next().unwrap();
+    /// assert_eq!(row.pressure.unwrap(), HectoPascal(925.0));
+    /// assert_eq!(row.temperature.unwrap(), Celsius(18.0));
+    /// assert!(row.wind.is_none()); // We never set wind profile.
+    ///
+    /// row = iter.next().unwrap();
+    /// assert_eq!(row.pressure.unwrap(), HectoPascal(1000.0));
+    /// assert_eq!(row.temperature.unwrap(), Celsius(20.0));
+    /// assert!(row.wind.is_none()); // We never set wind profile.
+    ///
+    /// row = iter.next().unwrap();
+    /// assert_eq!(row.pressure.unwrap(), HectoPascal(1014.0)); // Surface values first!
+    /// assert!(row.temperature.is_none());  // We never set a surface temprature!
+    /// assert!(row.wind.is_none()); // We never set wind profile.
+    ///
+    /// let row_opt = iter.next();
+    /// assert!(row_opt.is_none());
+    /// ```
     #[inline]
     pub fn top_down<'a>(&'a self) -> impl Iterator<Item = DataRow> + 'a {
         ProfileIterator {
@@ -584,7 +1037,42 @@ impl Sounding {
 
     /// Get a row of data values from this sounding.
     #[inline]
+    #[deprecated(since = "0.9.1", note = "Use `data_row` instead.")]
     pub fn get_data_row(&self, idx: usize) -> Option<DataRow> {
+        self.data_row(idx)
+    }
+
+    /// Get a row of data values from this sounding.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use metfor::{HectoPascal, Millibar, Celsius};
+    /// use optional::some;
+    /// use sounding_base::Sounding;
+    ///
+    /// let pres: Vec<_> = vec![1000.0, 925.0, 850.0].into_iter()
+    ///     .map(HectoPascal).map(some).collect();
+    /// let temps: Vec<_> = vec![20.0, 18.0, 17.0].into_iter()
+    ///     .map(Celsius).map(some).collect();
+    ///
+    /// let snd = Sounding::new()
+    ///     .with_pressure_profile(pres)
+    ///     .with_temperature_profile(temps)
+    ///     .with_station_pressure(Millibar(1014.0));
+    ///
+    /// let row = snd.data_row(0).unwrap(); // This is the surface
+    /// assert_eq!(row.pressure.unwrap(), HectoPascal(1014.0));
+    /// assert!(row.temperature.is_none()); // We never set a surface temperature.
+    ///
+    /// let row = snd.data_row(1).unwrap(); // This is the lowest layer above the surface.
+    /// assert_eq!(row.pressure.unwrap(), HectoPascal(1000.0));
+    /// assert_eq!(row.temperature.unwrap(), Celsius(20.0));
+    ///
+    /// assert!(snd.data_row(4).is_none()); // There weren't that many rows!
+    /// ```
+    #[inline]
+    pub fn data_row(&self, idx: usize) -> Option<DataRow> {
         macro_rules! copy_to_result {
             ($result:ident, $profile:ident, $idx:ident) => {
                 match self.$profile.get($idx) {
@@ -616,7 +1104,7 @@ impl Sounding {
     /// Get the surface values in a `DataRow` format.
     #[inline]
     pub fn surface_as_data_row(&self) -> Option<DataRow> {
-        self.get_data_row(0)
+        self.data_row(0)
     }
 
     /// Given a target pressure, return the row of data values closest to this one.
@@ -645,7 +1133,7 @@ impl Sounding {
         if idx == 0 {
             self.surface_as_data_row().unwrap()
         } else {
-            self.get_data_row(idx - 1).unwrap()
+            self.data_row(idx - 1).unwrap()
         }
     }
 
@@ -703,13 +1191,13 @@ impl<'a> Iterator for ProfileIterator<'a> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        let result = self.src.get_data_row(self.next_idx as usize);
+        let result = self.src.data_row(self.next_idx as usize);
         self.next_idx += self.direction;
         result
     }
 }
 
-// FIXME: only configure for test and doc tests, not possible as of 1.26
+// FIXME: only configure for test and doc tests, not possible as of 1.31
 #[doc(hidden)]
 pub mod doctest {
     use super::*;
@@ -731,10 +1219,10 @@ pub mod doctest {
         ];
 
         Sounding::new()
-            .set_pressure_profile(p)
-            .set_temperature_profile(t)
-            .set_sfc_temperature(some(Celsius(21.0)))
-            .set_station_pressure(some(HectoPascal(1005.0)))
+            .with_pressure_profile(p)
+            .with_temperature_profile(t)
+            .with_sfc_temperature(some(Celsius(21.0)))
+            .with_station_pressure(some(HectoPascal(1005.0)))
     }
 }
 
