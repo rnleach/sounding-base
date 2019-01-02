@@ -1,7 +1,7 @@
 //! Data type and methods to store an atmospheric sounding.
 
 use chrono::NaiveDateTime;
-use metfor::{Celsius, HectoPascal, Kelvin, Meters, Mm, PaPS, Quantity, WindSpdDir};
+use metfor::{Celsius, HectoPascal, Kelvin, Knots, Meters, Mm, PaPS, Quantity, WindSpdDir};
 use optional::Optioned;
 
 use crate::data_row::DataRow;
@@ -29,7 +29,7 @@ pub struct Sounding {
     wet_bulb: Vec<Optioned<Celsius>>,
     dew_point: Vec<Optioned<Celsius>>,
     theta_e: Vec<Optioned<Kelvin>>,
-    wind: Vec<Optioned<WindSpdDir>>,
+    wind: Vec<Optioned<WindSpdDir<Knots>>>,
     pvv: Vec<Optioned<PaPS>>,
     height: Vec<Optioned<Meters>>,
     cloud_fraction: Vec<Optioned<f64>>,
@@ -43,7 +43,7 @@ pub struct Sounding {
     mid_cloud: Optioned<f64>,
     high_cloud: Optioned<f64>,
     precipitation: Optioned<Mm>,
-    sfc_wind: Optioned<WindSpdDir>,
+    sfc_wind: Optioned<WindSpdDir<Knots>>,
 }
 
 macro_rules! make_profile_setter {
@@ -294,28 +294,27 @@ impl Sounding {
         &self.theta_e
     }
 
-    make_profile_setter!(
-        /// Set the wind profile.
-        #[inline]
-        #[deprecated(since = "0.9.1", note = "Use `with_wind_profile` instead.")]
-        => set_wind_profile, sfc_wind, WindSpdDir, wind
-    );
-
-    make_profile_setter!(
-        /// Builder method for the wind profile.
-        ///
-        /// See `set_pressure_profile` for an example of usage, keeping in mind the units type may
-        /// be different.
-        #[inline]
-        => with_wind_profile, sfc_wind, WindSpdDir, wind
-    );
+    /// Builder method for the wind profile.
+    ///
+    /// See `set_pressure_profile` for an example of usage, keeping in mind the units type may
+    /// be different.
+    #[inline]
+    pub fn with_wind_profile(self, mut profile: Vec<Optioned<WindSpdDir<Knots>>>) -> Self {
+        if !profile.is_empty() {
+            profile.insert(0, self.sfc_wind);
+        }
+        Self {
+            wind: profile,
+            ..self
+        }
+    }
 
     /// Get the wind profile.
     ///
     /// See `pressure_profile` for an example of using getters, keeping in mind the units type may
     /// be different.
     #[inline]
-    pub fn wind_profile(&self) -> &[Optioned<WindSpdDir>] {
+    pub fn wind_profile(&self) -> &[Optioned<WindSpdDir<Knots>>] {
         &self.wind
     }
 
@@ -606,41 +605,37 @@ impl Sounding {
     }
 
     /// Set the surface wind.
-    #[inline]
-    #[deprecated(since = "0.9.1", note = "Use `with_sfc_wind` instead.")]
-    pub fn set_sfc_wind<T, U>(self, value: T) -> Self
-    where
-        Optioned<U>: From<T>,
-        U: optional::Noned + metfor::Wind,
-        WindSpdDir: From<U>,
-    {
-        self.with_sfc_wind(value)
-    }
-
-    /// Set the surface wind.
     ///
     /// # Examples
     ///```rust
     /// use sounding_base::Sounding;
-    /// use metfor::{WindSpdDir, WindUV};
+    /// use metfor::{WindSpdDir, WindUV, Knots, MetersPSec};
     /// use optional::{some, none};
     ///
-    /// let _snd = Sounding::new().with_sfc_wind(WindSpdDir{speed_kt: 10.0, direction: 270.0});
-    /// let _snd = Sounding::new().with_sfc_wind(some(WindSpdDir{speed_kt: 10.0, direction: 270.0}));
-    /// let _snd = Sounding::new().with_sfc_wind(none::<WindSpdDir>());
-    /// let _snd = Sounding::new().with_sfc_wind(some(WindUV{u: -7.3, v: 5.2}));
-    /// let _snd = Sounding::new().with_sfc_wind(WindUV{u: -7.3, v: 5.2});
-    /// let _snd = Sounding::new().with_sfc_wind(none::<WindUV>());
+    /// let _snd = Sounding::new()
+    ///     .with_sfc_wind(WindSpdDir{speed: Knots(10.0), direction: 270.0});
+    ///
+    /// let _snd = Sounding::new()
+    ///     .with_sfc_wind(some(WindSpdDir{speed: Knots(10.0), direction: 270.0}));
+    ///
+    /// let _snd = Sounding::new().with_sfc_wind(none::<WindSpdDir<_>>());
+    ///
+    /// let _snd = Sounding::new()
+    ///     .with_sfc_wind(some(WindUV{u: MetersPSec(-7.3), v: MetersPSec(5.2)}));
+    /// let _snd = Sounding::new()
+    ///     .with_sfc_wind(WindUV{u: MetersPSec(-7.3), v: MetersPSec(5.2)});
+    ///
+    /// let _snd = Sounding::new().with_sfc_wind(none::<WindUV<MetersPSec>>());
     ///```
     #[inline]
     pub fn with_sfc_wind<T, U>(mut self, value: T) -> Self
     where
         Optioned<U>: From<T>,
-        U: optional::Noned + metfor::Wind,
-        WindSpdDir: From<U>,
+        U: optional::Noned + Copy,
+        WindSpdDir<Knots>: From<U>,
     {
         let sfc_wind: Optioned<U> = Optioned::from(value);
-        let sfc_wind: Optioned<WindSpdDir> = sfc_wind.map_t(WindSpdDir::from);
+        let sfc_wind: Optioned<WindSpdDir<Knots>> = sfc_wind.map_t(WindSpdDir::from);
 
         if !self.wind.is_empty() {
             self.wind[0] = sfc_wind;
@@ -651,7 +646,7 @@ impl Sounding {
 
     /// Get the surface wind.
     #[inline]
-    pub fn sfc_wind(&self) -> Optioned<WindSpdDir> {
+    pub fn sfc_wind(&self) -> Optioned<WindSpdDir<Knots>> {
         self.sfc_wind
     }
 
