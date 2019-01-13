@@ -1,4 +1,4 @@
-use metfor::{Celsius, HectoPascal, Kelvin, Meters, PaPS, WindSpdDir};
+use metfor::{Celsius, HectoPascal, Kelvin, Knots, Meters, PaPS, WindSpdDir};
 use optional::Optioned;
 
 /// A copy of a row of the sounding data.
@@ -15,7 +15,7 @@ pub struct DataRow {
     /// Equivalent potential temperature in Kelvin
     pub theta_e: Optioned<Kelvin>,
     /// Wind
-    pub wind: Optioned<WindSpdDir>,
+    pub wind: Optioned<WindSpdDir<Knots>>,
     /// Pressure vertical velocity in Pa/sec
     pub pvv: Optioned<PaPS>,
     /// Geopotential Height in meters
