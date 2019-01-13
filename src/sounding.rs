@@ -177,7 +177,7 @@ impl Sounding {
     ///
     /// for p in data {
     ///     if let Some(p) = p.into_option() {
-    ///         println!("{}", p);
+    ///         println!("{:?}", p);
     ///     } else {
     ///         println!("missing value!");
     ///     }
