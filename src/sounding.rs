@@ -15,6 +15,9 @@ use crate::station_info::StationInfo;
 ///
 #[derive(Clone, Debug, Default)]
 pub struct Sounding {
+    // Description of the source of the sounding.
+    source: Option<String>,
+
     // Station info
     station: StationInfo,
 
@@ -92,11 +95,46 @@ impl Sounding {
         Sounding::default()
     }
 
-    /// Set the station info.
+    /// Add a source description to this sounding.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use sounding_base::Sounding;
+    ///
+    /// let snd = Sounding::new().with_source_description("An empty sounding.".to_owned());
+    /// let snd = snd.with_source_description(
+    ///     Some("Still empty, just added a description.".to_owned()),
+    /// );
+    /// let _snd = snd.with_source_description(None);
+    ///
+    /// ```
     #[inline]
-    #[deprecated(since = "0.9.1", note = "Use `with_station_info` instead.")]
-    pub fn set_station_info(self, new_value: StationInfo) -> Self {
-        self.with_station_info(new_value)
+    pub fn with_source_description<S>(mut self, desc: S) -> Self
+    where
+        Option<String>: From<S>,
+    {
+        self.source = Option::from(desc);
+        self
+    }
+
+    /// Retrieve a source description for this sounding.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use sounding_base::Sounding;
+    ///
+    /// let snd = Sounding::new().with_source_description("An empty sounding.".to_owned());
+    /// assert_eq!(snd.source_description().unwrap(), "An empty sounding.");
+    ///
+    /// let snd = snd.with_source_description(None);
+    /// assert!(snd.source_description().is_none());
+    ///
+    /// ```
+    #[inline]
+    pub fn source_description(&self) -> Option<&str> {
+        self.source.as_ref().map(|s| s.as_ref())
     }
 
     /// Builder function for setting the station info.
@@ -134,13 +172,6 @@ impl Sounding {
     pub fn station_info(&self) -> StationInfo {
         self.station
     }
-
-    make_profile_setter!(
-        /// Set the pressure profile.
-        #[inline]
-        #[deprecated(since = "0.9.1", note = "Use `with_pressure_profile` instead.")]
-        => set_pressure_profile, station_pressure, HectoPascal, pressure
-    );
 
     make_profile_setter!(
         /// Builder method for the pressure profile.
@@ -195,13 +226,6 @@ impl Sounding {
     }
 
     make_profile_setter!(
-        /// Set the temperature profile.
-        #[inline]
-        #[deprecated(since = "0.9.1", note = "Use `with_temperature_profile` instead.")]
-        => set_temperature_profile, sfc_temperature, Celsius, temperature
-    );
-
-    make_profile_setter!(
         /// Builder method for the temperature profile.
         ///
         /// See `with_pressure_profile` for an example of usage, keeping in mind the units type may
@@ -218,13 +242,6 @@ impl Sounding {
     pub fn temperature_profile(&self) -> &[Optioned<Celsius>] {
         &self.temperature
     }
-
-    make_profile_setter!(
-        /// Set the dew point profile.
-        #[inline]
-        #[deprecated(since = "0.9.1", note = "Use `with_dew_point_profile` instead.")]
-        => set_dew_point_profile, sfc_dew_point, Celsius, dew_point
-    );
 
     make_profile_setter!(
         /// Builder method for the dew point profile.
@@ -245,13 +262,6 @@ impl Sounding {
     }
 
     make_profile_setter!(
-        /// Set the wet bulb profile.
-        #[inline]
-        #[deprecated(since = "0.9.1", note = "Use `with_wet_bulb_profile` instead.")]
-        => set_wet_bulb_profile, surface_wet_bulb(), Celsius, wet_bulb
-    );
-
-    make_profile_setter!(
         /// Builder method for the wet bulb profile.
         ///
         /// See `with_pressure_profile` for an example of usage, keeping in mind the units type may
@@ -268,13 +278,6 @@ impl Sounding {
     pub fn wet_bulb_profile(&self) -> &[Optioned<Celsius>] {
         &self.wet_bulb
     }
-
-    make_profile_setter!(
-        /// Set the theta e profile.
-        #[inline]
-        #[deprecated(since = "0.9.1", note = "Use `with_wet_bulb_profile` instead.")]
-        => set_theta_e_profile, surface_theta_e(), Kelvin, theta_e
-    );
 
     make_profile_setter!(
         /// Builder method for the theta e profile.
@@ -319,13 +322,6 @@ impl Sounding {
     }
 
     make_profile_setter!(
-        /// Set the pressure vertical velocity profile.
-        #[inline]
-        #[deprecated(since = "0.9.1", note = "Use `with_pvv_profile` instead.")]
-        => set_pvv_profile, optional::some(PaPS(0.0)), PaPS, pvv
-    );
-
-    make_profile_setter!(
         /// Builder method for the pressure vertical velocity profile.
         ///
         /// See `set_pressure_profile` for an example of usage, keeping in mind the units type may
@@ -342,13 +338,6 @@ impl Sounding {
     pub fn pvv_profile(&self) -> &[Optioned<PaPS>] {
         &self.pvv
     }
-
-    make_profile_setter!(
-        /// Set the geopotential height profile.
-        #[inline]
-        #[deprecated(since = "0.9.1", note = "Use `with_height_profile` instead.")]
-        => set_height_profile, surface_height(), Meters, height
-    );
 
     make_profile_setter!(
         /// Builder method for the geopotential height profile.
@@ -369,13 +358,6 @@ impl Sounding {
     }
 
     make_profile_setter!(
-        /// Set the cloud cover profile.
-        #[inline]
-        #[deprecated(since = "0.9.1", note = "Use `with_cloud_fraction_profile` instead.")]
-        => set_cloud_fraction_profile, optional::some(0.0), f64, cloud_fraction
-    );
-
-    make_profile_setter!(
         /// Builder method for the cloud cover profile.
         ///
         /// See `set_pressure_profile` for an example of usage, keeping in mind the units type may
@@ -391,18 +373,6 @@ impl Sounding {
     #[inline]
     pub fn cloud_fraction_profile(&self) -> &[Optioned<f64>] {
         &self.cloud_fraction
-    }
-
-    /// Set the mean sea level pressure.
-    #[inline]
-    #[deprecated(since = "0.9.1", note = "Use `with_mslp` instead.")]
-    pub fn set_mslp<T, U>(self, value: T) -> Self
-    where
-        Optioned<U>: From<T>,
-        U: optional::Noned + metfor::Pressure,
-        HectoPascal: From<U>,
-    {
-        self.with_mslp(value)
     }
 
     /// Builder method for the mean sea level pressure.
@@ -437,18 +407,6 @@ impl Sounding {
     #[inline]
     pub fn mslp(&self) -> Optioned<HectoPascal> {
         self.mslp
-    }
-
-    /// Set the station pressure.
-    #[deprecated(since = "0.9.1", note = "Use `with_station_pressure` instead.")]
-    #[inline]
-    pub fn set_station_pressure<T, U>(self, value: T) -> Self
-    where
-        Optioned<U>: From<T>,
-        U: optional::Noned + metfor::Pressure,
-        HectoPascal: From<U>,
-    {
-        self.with_station_pressure(value)
     }
 
     /// Biulder method for the station pressure.
@@ -490,18 +448,6 @@ impl Sounding {
     #[inline]
     pub fn station_pressure(&self) -> Optioned<HectoPascal> {
         self.station_pressure
-    }
-
-    /// Set the surface temperature.
-    #[inline]
-    #[deprecated(since = "0.9.1", note = "Use `with_sfc_temperature` instead.")]
-    pub fn set_sfc_temperature<T, U>(self, value: T) -> Self
-    where
-        Optioned<U>: From<T>,
-        U: optional::Noned + metfor::Temperature,
-        Celsius: From<U>,
-    {
-        self.with_sfc_temperature(value)
     }
 
     /// Builder method the surface temperature.
@@ -546,18 +492,6 @@ impl Sounding {
     #[inline]
     pub fn sfc_temperature(&self) -> Optioned<Celsius> {
         self.sfc_temperature
-    }
-
-    /// Set the surface dew point.
-    #[inline]
-    #[deprecated(since = "0.9.1", note = "Use `with_sfc_dew_point` instead.")]
-    pub fn set_sfc_dew_point<T, U>(self, value: T) -> Self
-    where
-        Optioned<U>: From<T>,
-        U: optional::Noned + metfor::Temperature,
-        Celsius: From<U>,
-    {
-        self.with_sfc_dew_point(value)
     }
 
     /// Set the surface dew point.
@@ -650,18 +584,6 @@ impl Sounding {
         self.sfc_wind
     }
 
-    /// Set the precipitation.
-    #[inline]
-    #[deprecated(since = "0.9.1", note = "Use `with_precipitation` instead.")]
-    pub fn set_precipitation<T, U>(self, value: T) -> Self
-    where
-        Optioned<U>: From<T>,
-        U: optional::Noned + metfor::Length,
-        Mm: From<U>,
-    {
-        self.with_precipitation(value)
-    }
-
     /// Builder method for the precipitation.
     ///
     /// # Examples
@@ -702,16 +624,6 @@ impl Sounding {
         self.precipitation
     }
 
-    /// Set the low cloud amount in the range 0.0 to 1.0.
-    #[inline]
-    #[deprecated(since = "0.9.1", note = "Use `with_low_cloud` instead.")]
-    pub fn set_low_cloud<T>(self, value: T) -> Self
-    where
-        Optioned<f64>: From<T>,
-    {
-        self.with_low_cloud(value)
-    }
-
     /// Builder method for the low cloud amount in the range 0.0 to 1.0.
     ///
     /// # Examples
@@ -747,16 +659,6 @@ impl Sounding {
         self.low_cloud
     }
 
-    /// Set the mid cloud amount in the range 0.0 to 1.0.
-    #[inline]
-    #[deprecated(since = "0.9.1", note = "Use `with_mid_cloud` instead.")]
-    pub fn set_mid_cloud<T>(self, value: T) -> Self
-    where
-        Optioned<f64>: From<T>,
-    {
-        self.with_mid_cloud(value)
-    }
-
     /// Builder method for the mid cloud amount in the range 0.0 to 1.0.
     ///
     /// # Examples
@@ -790,16 +692,6 @@ impl Sounding {
     #[inline]
     pub fn mid_cloud(&self) -> Optioned<f64> {
         self.mid_cloud
-    }
-
-    /// Set the high cloud amount in the range 0.0 to 1.0.
-    #[inline]
-    #[deprecated(since = "0.9.1", note = "Use `with_high_cloud` instead.")]
-    pub fn set_high_cloud<T>(self, value: T) -> Self
-    where
-        Optioned<f64>: From<T>,
-    {
-        self.with_high_cloud(value)
     }
 
     /// Builder method for the high cloud amount in the range 0.0 to 1.0.
@@ -838,16 +730,6 @@ impl Sounding {
     }
 
     /// Difference in model initialization time and `valid_time` in hours.
-    #[inline]
-    #[deprecated(since = "0.9.1", note = "Use `with_lead_time` instead.")]
-    pub fn set_lead_time<T>(self, lt: T) -> Self
-    where
-        Optioned<i32>: From<T>,
-    {
-        self.with_lead_time(lt)
-    }
-
-    /// Difference in model initialization time and `valid_time` in hours.
     ///
     /// # Examples
     /// ```rust
@@ -873,34 +755,10 @@ impl Sounding {
         self.lead_time
     }
 
-    /// Difference in model initialization time and `valid_time` in hours.
-    #[inline]
-    #[deprecated(since = "0.9.1", note = "Use `lead_time()` instead.")]
-    pub fn get_lead_time(&self) -> Optioned<i32> {
-        self.lead_time()
-    }
-
     /// Valid time of the sounding.
     #[inline]
     pub fn valid_time(&self) -> Option<NaiveDateTime> {
         self.valid_time
-    }
-
-    /// Valid time of the sounding.
-    #[inline]
-    #[deprecated(since = "0.9.1", note = "Use `valid_time()` instead.")]
-    pub fn get_valid_time(&self) -> Option<NaiveDateTime> {
-        self.valid_time()
-    }
-
-    /// Builder method to set the valid time of the sounding.
-    #[inline]
-    #[deprecated(since = "0.9.1", note = "Use `with_valid_time` instead.")]
-    pub fn set_valid_time<T>(self, valid_time: T) -> Self
-    where
-        Option<NaiveDateTime>: From<T>,
-    {
-        self.with_valid_time(valid_time)
     }
 
     /// Builder method to set the valid time of the sounding.
@@ -1028,13 +886,6 @@ impl Sounding {
             direction: -1,
             src: self,
         }
-    }
-
-    /// Get a row of data values from this sounding.
-    #[inline]
-    #[deprecated(since = "0.9.1", note = "Use `data_row` instead.")]
-    pub fn get_data_row(&self, idx: usize) -> Option<DataRow> {
-        self.data_row(idx)
     }
 
     /// Get a row of data values from this sounding.
