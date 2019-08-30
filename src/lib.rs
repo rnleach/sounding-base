@@ -1,4 +1,5 @@
 #![doc(test(attr(deny(warnings))))]
+#![deprecated]
 /*!
 
 Library to represent an atmospheric sounding with pressure as the vertical coordinate.
